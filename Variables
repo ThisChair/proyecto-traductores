@@ -1,5 +1,22 @@
 Variables
 
+# EXP     = expresión
+# AE      = expresión aritmética
+# BE      = expresión booleana
+# TYPE    = tipo
+# DISJS   = secuencia de disyunciones
+# DISJ    = disyunción
+# CONJS   = secuencia de conjunciones
+# CONJ    = conjunción
+# ACOMP   = comparación aritmética
+# BCOMP   = comparación booleana
+# BUNIT   = unidad booleana
+# BN      = unidad booleana con uno o mas 'not'
+# TERMS   = secuencia de terminos de una suma o resta
+# TERM    = termino de una suma o una resta
+# FACTS   = secuencia de operandos de una multiplicación, división, resto
+# FACT    = operando de una multiplicación, división, resto
+# AUNIT   = unidad aritmética
 # BLOCK   = bloques
 # DO      = Bloque with do
 # IF      = Bloque if
