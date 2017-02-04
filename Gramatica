@@ -2,16 +2,19 @@ Gramática
 
 Gramática G = (V, Σ, P, S)
 
-V = { EXP,      BE,     AE,     TYPE,   DISJS, DISJ, CONJS, CONJ, ACOMP, BCOMP,
-      BUNIT, BN, 
-      DEC,      IDS,    ASSIGN, READ,   WRITE,  WRITELN,  PRINT,  PRINTS,
-      BLOCK,    DO,     IF,     IFELSE, WHILE,  FOR1,     FOR2,   REPEAT,
-      DEFFUNC,  DFUN1,  DFUN2,  PARS,   PS,     PAR,
-      INS,      FUNS,   IS,     S }
+V = { EXP,    BE,       AE,     TYPE,   DISJS,  DISJ,   CONJS,    CONJ,
+      ACOMP,  BCOMP,    BUNIT,  BN,     TERMS,  TERM,   FACTS,    FACT,
+      AUNIT,  DEC,      IDS,    ASSIGN, READ,   WRITE,  WRITELN,  PRINT,
+      PRINTS, BLOCK,    DO,     IF,     IFELSE, WHILE,  FOR1,     FOR2,  
+      REPEAT, DEFFUNC,  DFUN1,  DFUN2,  PARS,   PS,     PAR,      INS,
+      FUNS,   IS,     S }
+      
 Σ = { program,  with, do,     end,    if,     then,   else,
       while,    from, to,     by,     string, repeat, times,
-      number,   bool, string, func,
-      true, false, or, and, not, <=, >=, <, >, ==, !=}
+      number,   bool, String, func,   true,   false,  or,
+      and,      not,  <=,     >=,     <,      >,      ==,
+      !=,       +,    -,      /,      %,      div,    mod,
+      Num}
 
 
 P:
@@ -29,15 +32,15 @@ P:
     #Expresiones aritméticas
     EA    -> TERMS
     TERMS -> TERM
-    TERMS -> TERM + TERMS
-    TERMS -> TERM - TERMS
+    TERMS -> TERMS + TERM
+    TERMS -> TERMS - TERM
     TERM  -> FACTS
     FACTS -> FACT
-    FACTS -> FACT * FACTS
-    FACTS -> FACT / FACTS
-    FACTS -> FACT % FACTS
-    FACTS -> FACT div FACTS
-    FACTS -> FACT mod FACTS
+    FACTS -> FACTS * FACT
+    FACTS -> FACTS / FACT
+    FACTS -> FACTS % FACT
+    FACTS -> FACTS div FACT
+    FACTS -> FACTS mod FACT
     FACT  -> AUNIT
     FACT  -> -FACT
     AUNIT -> (EA)
@@ -62,8 +65,8 @@ P:
     ACOMP -> AE /= AE
     ACOMP -> AE == AE
     BCOMP -> BN
-    BCOMP -> BN == BCOMP
-    BCOMP -> BN != BCOMP   
+    BCOMP -> BCOMP == BN
+    BCOMP -> BCOMP != BN
     BN    -> BUNIT
     BN    -> not BN
     
