@@ -20,3 +20,9 @@ Variables
 # IS      = secuencia de instrucciones
 # S       = Estado inicial
 # ASSIG   = asignación
+# DEFFUNC = defininicion de una funcion
+# DFUN1   = definicion de una funcion que no devuelve valor
+# DFUN2   = definicion de una funcion que devuelve un valor
+# PARS    = Lista de parametros de una funcion
+# PS      = Lista de parametros (para construccion)
+# PAR     = Parametro
