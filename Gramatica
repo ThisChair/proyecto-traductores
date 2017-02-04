@@ -1,0 +1,83 @@
+Gramática
+
+Gramática G = (V, Σ, P, S)
+
+V = {FUNS, IS, DEFFUNC, INS, BLOCK, READ, WRITE, WRITEL FUN, LFUN, ASSIG, DEC, DO, IF, IFELSE, WHILE, FOR1, FOR2, REPEAT, PRINT, PRINTS, ASSIGN, IDS}
+Σ = {program, with, do, end, if, then, else, while, from, to, by, string, repeat, times}
+
+
+P:
+    # Expresiones
+    EXP ->
+    BE  ->
+    AE  ->
+    
+    # PRITS = secuencia de expresiones o strings para imprimir
+    # PRINT = expresión o string para imprimir
+    PRINT   -> string
+    PRINT   -> EXP
+    PRINTS  -> λ
+    PRINTS  -> PRINT,
+    
+    # Entrada/Salida
+    # READ = leer
+    # WRITE = escribe una lista de expresiones o strings
+    # WRITELN = escribe una lista de expresiones o strings con un salto de linea al final
+    READ    -> read ident
+    WRITE   -> write PRINTS PRINT
+    WRITELN -> writeln PRINTS PRINT
+    
+    # Asignaciones
+    ASSIG  -> ident = EXP
+    
+    # DEC = declaracion
+    # IDS = secuencia de identificadores
+    DEC -> ident = EXP
+    DEC -> IDS ident
+    IDS -> λ
+    IDS -> IDS ident,
+    
+    # S = Estado inicial
+    S     -> LFUN program LB
+   
+    # FUNS = Lista de definiciones de funciones
+    # IS = secuencia de instrucciones
+    FUNS  -> λ
+    FUNS  -> FUNS DEFFUNC 
+    IS    -> λ
+    IS    -> IS INS
+
+    
+    # INS = instrucciones
+    INS -> BLOCK
+    INS -> READ
+    INS -> WRITE
+    INS -> WRITEL
+    INS -> FUN
+    INS -> ASSIG
+    INS -> DEC
+    
+    # BLOCK   = bloques
+    # DO      = Bloque with do
+    # IF      = Bloque if
+    # IFELSE  = Bloque if else
+    # WHILE   = Bloque while
+    # FOR1    = Bloque for sin incremento
+    # FOR2    = Bloque for con incremento
+    # REPEAT  = Bloque repeat
+    
+    BLOCK   -> DO
+    BLOCK   -> IF
+    BLOCK   -> IFELSE
+    BLOCK   -> FOR1
+    BLOCK   -> FOR2
+    DO      -> with DECS do IS end
+    IF      -> if BE then IS end
+    IFELSE  -> if BE then IS else IS end
+    WHILE   -> while BE do IS end
+    FOR1    -> for ident from AE to AE do IS end
+    FOR2    -> for ident from AE to AE by AE
+    REPEAT  -> repeat ident AE times
+    
+    
+    
