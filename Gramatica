@@ -2,15 +2,23 @@ Gramática
 
 Gramática G = (V, Σ, P, S)
 
-V = { EXP,    BE,   AE,     TYPE, 
-      DEC,    IDS,  ASSIGN, READ,   WRITE,  WRITELN,  PRINT,  PRINTS,
-      BLOCK,  DO,   IF,     IFELSE, WHILE,  FOR1,     FOR2,   REPEAT,
+V = { EXP,      BE,   AE,     TYPE, 
+      DEC,      IDS,  ASSIGN, READ,   WRITE,  WRITELN,  PRINT,  PRINTS,
+      BLOCK,    DO,   IF,     IFELSE, WHILE,  FOR1,     FOR2,   REPEAT,
+      DEFFUNC,  } 
       INS,    FUNS, IS,     S}
 Σ = { program, with, do, end, if, then, else, while, from, to, by, string, repeat, times
-      number, bool}
+      number, bool, string, }
 
 
 P:
+    # Programa general
+    FUNS  -> λ
+    FUNS  -> FUNS DEFFUNC; 
+    IS    -> λ
+    IS    -> IS INS;
+    S     -> FUNS program LB FUNS  
+    
     # Expresiones
     EXP ->
     BE  ->
@@ -20,6 +28,7 @@ P:
     # Declaraciones
     TYPE  -> number
     TYPE  -> bool
+    TYPE  -> string
     DEC   -> TYPE ident = EXP
     DEC   -> TYPE IDS ident
     IDS   -> λ
@@ -34,6 +43,17 @@ P:
     PRINT   -> EXP
     PRINTS  -> λ
     PRINTS  -> PRINT,
+    
+    # Funciones
+    DEFFUNC -> DFUN1
+    DEFFUNC -> DFUN2
+    DFUN1   -> func ident(PARS) begin IS end
+    DFUN2   -> func ident(PARS) -> TYPE begin IS end
+    PARS    -> λ
+    PARS    -> PS PAR
+    PS      -> λ
+    PS      -> PS PAR,
+    PAR     -> TYPE ident
     
     # Bloques
     BLOCK   -> DO
@@ -59,11 +79,6 @@ P:
     INS -> DEC
     
 
-    # Programa general
-    FUNS  -> λ
-    FUNS  -> FUNS DEFFUNC; 
-    IS    -> λ
-    IS    -> IS INS;
-    S     -> FUNS program LB FUNS  
+    
    
     
