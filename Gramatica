@@ -2,13 +2,16 @@ Gramática
 
 Gramática G = (V, Σ, P, S)
 
-V = { EXP,      BE,   AE,     TYPE, 
-      DEC,      IDS,  ASSIGN, READ,   WRITE,  WRITELN,  PRINT,  PRINTS,
-      BLOCK,    DO,   IF,     IFELSE, WHILE,  FOR1,     FOR2,   REPEAT,
-      DEFFUNC,  } 
-      INS,    FUNS, IS,     S}
-Σ = { program, with, do, end, if, then, else, while, from, to, by, string, repeat, times
-      number, bool, string, }
+V = { EXP,      BE,     AE,     TYPE,   DISJS, DISJ, CONJS, CONJ, ACOMP, BCOMP,
+      BUNIT, BN, 
+      DEC,      IDS,    ASSIGN, READ,   WRITE,  WRITELN,  PRINT,  PRINTS,
+      BLOCK,    DO,     IF,     IFELSE, WHILE,  FOR1,     FOR2,   REPEAT,
+      DEFFUNC,  DFUN1,  DFUN2,  PARS,   PS,     PAR,
+      INS,      FUNS,   IS,     S }
+Σ = { program,  with, do,     end,    if,     then,   else,
+      while,    from, to,     by,     string, repeat, times,
+      number,   bool, string, func,
+      true, false, or, and, not, <=, >=, <, >, ==, !=}
 
 
 P:
@@ -20,9 +23,39 @@ P:
     S     -> FUNS program LB FUNS  
     
     # Expresiones
-    EXP ->
-    BE  ->
-    AE  ->
+    EXP   -> BE
+    EXP   -> AE
+    
+    
+    #Expresiones aritméticas
+    # Expresiones booleanas
+    BE    -> DISYS
+    DISJS -> DISJ
+    DISJS -> DISJS or DISJ
+    DISJ  -> CONJS
+    CONJS -> CONJ
+    CONJS -> CONJS and CONJ
+    CONJ  -> ACOMP
+    CONJ  -> BCOMP
+    
+    ACOMP -> AE >= AE
+    ACOMP -> AE > AE
+    ACOMP -> AE <= AE
+    ACOMP -> AE < AE
+    ACOMP -> AE /= AE
+    ACOMP -> AE == AE
+    BCOMP -> BN
+    BCOMP -> BN == BCOMP
+    BCOMP -> BN != BCOMP   
+    BN    -> BUNIT
+    BN    -> not BN
+    
+    BUNIT  -> (BE)
+    BUNIT  -> true
+    BUNIT  -> false
+    BUNIT  -> ident
+    
+    
     
     
     # Declaraciones
