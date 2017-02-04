@@ -1,0 +1,22 @@
+Variables
+
+# BLOCK   = bloques
+# DO      = Bloque with do
+# IF      = Bloque if
+# IFELSE  = Bloque if else
+# WHILE   = Bloque while
+# FOR1    = Bloque for sin incremento
+# FOR2    = Bloque for con incremento
+# REPEAT  = Bloque repeat
+# READ    = leer
+# WRITE   = escribe una lista de expresiones o strings
+# WRITELN = escribe una lista de expresiones o strings con un salto de linea al final
+# PRITS   = secuencia de expresiones o strings para imprimir
+# PRINT   = expresión o string para imprimir
+# DEC     = declaracion
+# IDS     = secuencia de identificadores
+# INS     = instrucciones
+# FUNS    = Lista de definiciones de funciones
+# IS      = secuencia de instrucciones
+# S       = Estado inicial
+# ASSIG   = asignación
