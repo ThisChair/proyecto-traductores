@@ -26,10 +26,27 @@ P:
     EXP   -> BE
     EXP   -> AE
     
-    
     #Expresiones aritméticas
+    EA    -> TERMS
+    TERMS -> TERM
+    TERMS -> TERM + TERMS
+    TERMS -> TERM - TERMS
+    TERM  -> FACTS
+    FACTS -> FACT
+    FACTS -> FACT * FACTS
+    FACTS -> FACT / FACTS
+    FACTS -> FACT % FACTS
+    FACTS -> FACT div FACTS
+    FACTS -> FACT mod FACTS
+    FACT  -> AUNIT
+    FACT  -> -FACT
+    AUNIT -> (EA)
+    AUNIT -> Num
+    AUNIT -> Ident
+    
+    
     # Expresiones booleanas
-    BE    -> DISYS
+    BE    -> DISJS
     DISJS -> DISJ
     DISJS -> DISJS or DISJ
     DISJ  -> CONJS
