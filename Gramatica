@@ -2,8 +2,12 @@ Gramática
 
 Gramática G = (V, Σ, P, S)
 
-V = {FUNS, IS, DEFFUNC, INS, BLOCK, READ, WRITE, WRITEL FUN, LFUN, ASSIG, DEC, DO, IF, IFELSE, WHILE, FOR1, FOR2, REPEAT, PRINT, PRINTS, ASSIGN, IDS}
-Σ = {program, with, do, end, if, then, else, while, from, to, by, string, repeat, times}
+V = { EXP,    BE,   AE,     TYPE, 
+      DEC,    IDS,  ASSIGN, READ,   WRITE,  WRITELN,  PRINT,  PRINTS,
+      BLOCK,  DO,   IF,     IFELSE, WHILE,  FOR1,     FOR2,   REPEAT,
+      INS,    FUNS, IS,     S}
+Σ = { program, with, do, end, if, then, else, while, from, to, by, string, repeat, times
+      number, bool}
 
 
 P:
@@ -12,60 +16,26 @@ P:
     BE  ->
     AE  ->
     
-    # PRITS = secuencia de expresiones o strings para imprimir
-    # PRINT = expresión o string para imprimir
+    
+    # Declaraciones
+    TYPE  -> number
+    TYPE  -> bool
+    DEC   -> TYPE ident = EXP
+    DEC   -> TYPE IDS ident
+    IDS   -> λ
+    IDS   -> IDS ident,
+    
+    # Entrada/Salida/Asignaciones
+    ASSIG  -> ident = EXP
+    READ    -> read ident
+    WRITE   -> write PRINTS PRINT
+    WRITELN -> writeln PRINTS PRINT
     PRINT   -> string
     PRINT   -> EXP
     PRINTS  -> λ
     PRINTS  -> PRINT,
     
-    # Entrada/Salida
-    # READ = leer
-    # WRITE = escribe una lista de expresiones o strings
-    # WRITELN = escribe una lista de expresiones o strings con un salto de linea al final
-    READ    -> read ident
-    WRITE   -> write PRINTS PRINT
-    WRITELN -> writeln PRINTS PRINT
-    
-    # Asignaciones
-    ASSIG  -> ident = EXP
-    
-    # DEC = declaracion
-    # IDS = secuencia de identificadores
-    DEC -> ident = EXP
-    DEC -> IDS ident
-    IDS -> λ
-    IDS -> IDS ident,
-    
-    # S = Estado inicial
-    S     -> LFUN program LB
-   
-    # FUNS = Lista de definiciones de funciones
-    # IS = secuencia de instrucciones
-    FUNS  -> λ
-    FUNS  -> FUNS DEFFUNC 
-    IS    -> λ
-    IS    -> IS INS
-
-    
-    # INS = instrucciones
-    INS -> BLOCK
-    INS -> READ
-    INS -> WRITE
-    INS -> WRITEL
-    INS -> FUN
-    INS -> ASSIG
-    INS -> DEC
-    
-    # BLOCK   = bloques
-    # DO      = Bloque with do
-    # IF      = Bloque if
-    # IFELSE  = Bloque if else
-    # WHILE   = Bloque while
-    # FOR1    = Bloque for sin incremento
-    # FOR2    = Bloque for con incremento
-    # REPEAT  = Bloque repeat
-    
+    # Bloques
     BLOCK   -> DO
     BLOCK   -> IF
     BLOCK   -> IFELSE
@@ -79,5 +49,21 @@ P:
     FOR2    -> for ident from AE to AE by AE
     REPEAT  -> repeat ident AE times
     
+    # Instrucciones
+    INS -> BLOCK
+    INS -> READ
+    INS -> WRITE
+    INS -> WRITEL
+    INS -> FUN
+    INS -> ASSIG
+    INS -> DEC
     
+
+    # Programa general
+    FUNS  -> λ
+    FUNS  -> FUNS DEFFUNC; 
+    IS    -> λ
+    IS    -> IS INS;
+    S     -> FUNS program LB FUNS  
+   
     
