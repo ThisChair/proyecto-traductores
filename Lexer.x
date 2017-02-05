@@ -24,9 +24,11 @@ tokens :-
     for                     { (\p s -> TFor p ) }
     from                    { (\p s -> TFrom p ) }
     to                      { (\p s -> TTo p ) }
+    by                      { (\p s -> TBy p ) }
     repeat                  { (\p s -> TRepeat p ) }
     times                   { (\p s -> TTimes p ) }
     func                    { (\p s -> TFunc p ) }
+    begin                   { (\p s -> TBegin p ) }
     not                     { (\p s -> TNot p ) }
     and                     { (\p s -> TAnd p ) }
     or                      { (\p s -> TOr p ) }
@@ -76,6 +78,7 @@ data Token =
     TFor        AlexPosn            |
     TFrom       AlexPosn            |
     TTo         AlexPosn            |
+    TBy         AlexPosn            |
     TRepeat     AlexPosn            |
     TTimes      AlexPosn            |
     TFunc       AlexPosn            |

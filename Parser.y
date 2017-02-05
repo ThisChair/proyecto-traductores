@@ -9,53 +9,55 @@ import Lexer
 
 %token
 
-    program {TProgram}
-    read    {TRead}
-    writeln {TWriteLn}
-    write   {TWrite}
-    end     {TEnd}
-    with    {TWith}
-    do      {TDo}
-    if      {TIf}
-    then    {TThen}
-    else    {TElse}
-    while   {TWhile}
-    for     {TFor}
-    from    {TFrom}
-    to      {TTo}
-    repeat  {TRepeat}
-    times   {TTimes}
-    func    {TFunc}
-    not     {TNot}
-    and     {TAnd}
-    or      {TOr}
-    div     {TDiv}
-    mod     {TMod}
-    '/='    {TNotEq}
-    '=='    {TEq}
-    '>='    {TMoreEq}
-    '<='    {TLessEq}
-    '->'    {TArrow}
-    return  {TReturn}
-    '='     {TAssign}
-    '+'     {TPlus}
-    '-'     {TMinus}
-    '*'     {TStar}
-    '/'     {TSlash}
-    '('     {TOpenP}
-    ')'     {TCloseP}
-    '<'     {TLess}
-    '>'     {TMore}
-    '%'     {TPercent}
-    ','     {TComma}
-    ';'     {TSColon}
-    boolean {TBoolean}
-    number  {TNumber}
-    true    {TTrue}
-    false   {TFalse}
-    id      {TIdent}
-    num     {TNumber}
-    str     {TString}
+    program { TProgram _ }
+    read    { TRead _ }
+    writeln { TWriteLn _ }
+    write   { TWrite _ }
+    end     { TEnd _ }
+    with    { TWith _ }
+    do      { TDo _ }
+    if      { TIf _ }
+    then    { TThen _ }
+    else    { TElse _ }
+    while   { TWhile _ }
+    for     { TFor _ }
+    from    { TFrom _ }
+    to      { TTo _ }
+    by      { TBy _ }
+    repeat  { TRepeat _ }
+    times   { TTimes _ }
+    func    { TFunc _ }
+    begin   { TBegin _ }
+    not     { TNot _ }
+    and     { TAnd _ }
+    or      { TOr _ }
+    div     { TDiv _ }
+    mod     { TMod _ }
+    '/='    { TNotEq _ }
+    '=='    { TEq _ }
+    '>='    { TMoreEq _ }
+    '<='    { TLessEq _ }
+    '->'    { TArrow _ }
+    return  { TReturn _ }
+    '='     { TAssign _ }
+    '+'     { TPlus _ }
+    '-'     { TMinus _ }
+    '*'     { TStar _ }
+    '/'     { TSlash _ }
+    '('     { TOpenP _ }
+    ')'     { TCloseP _ }
+    '<'     { TLess _ }
+    '>'     { TMore _ }
+    '%'     { TPercent _ }
+    ','     { TComma _ }
+    ';'     { TSColon _ }
+    boolean { TBoolean _ }
+    number  { TNumber _ }
+    true    { TTrue _ }
+    false   { TFalse _ }
+    id      { TIdent _ }
+    num     { TNumber _ }
+    str     { TString _ }
 
 %left or
 %left and
@@ -66,113 +68,113 @@ import Lexer
 
 %%
 
-Funs : {- empty -}
-    | Funs DefFunc ';'
+Funs : {- empty -}     {[]}
+    | Funs DefFunc ';' {[]}
 
-Is : {- empty -}
-    | Is Ins ';'
+Is : {- empty -} {[]}
+    | Is Ins ';' {[]}
 
-S : Funs program Is end ';'
+S : Funs program Is end ';' {[]}
 
-Exp : BoolE
-    | AritE
-    | '(' Exp ')'
+Exp : BoolE       {[]}
+    | AritE       {[]}
+    | '(' Exp ')' {[]}
     
-AritE : AritE '+' AritE
-    | AritE '-' AritE
-    | AritE '*' AritE
-    | AritE '/' AritE
-    | AritE '%' AritE
-    | AritE div AritE
-    | AritE mod AritE
-    | '-' AritE %prec NEG
-    | num
-    | id
+AritE : AritE '+' AritE   {[]}
+    | AritE '-' AritE     {[]}
+    | AritE '*' AritE     {[]}
+    | AritE '/' AritE     {[]}
+    | AritE '%' AritE     {[]}
+    | AritE div AritE     {[]}
+    | AritE mod AritE     {[]}
+    | '-' AritE %prec NEG {[]}
+    | num                 {[]}
+    | id                  {[]}
     
-BoolE : BoolE or BoolE
-    | BoolE and BoolE
-    | not BoolE
-    | AComp
-    | BComp
-    | true
-    | false
-    | id
+BoolE : BoolE or BoolE {[]}
+    | BoolE and BoolE  {[]}
+    | not BoolE        {[]}
+    | AComp            {[]}
+    | BComp            {[]}
+    | true             {[]}
+    | false            {[]}
+    | id               {[]}
 
-AComp : AritE '>=' AritE
-    | AritE '>' AritE
-    | AritE '<=' AritE
-    | AritE '<' AritE
-    | AritE '/=' AritE
-    | AritE '==' AritE
+AComp : AritE '>=' AritE {[]}
+    | AritE '>' AritE    {[]}
+    | AritE '<=' AritE   {[]}
+    | AritE '<' AritE    {[]}
+    | AritE '/=' AritE   {[]}
+    | AritE '==' AritE   {[]}
 
-BComp : BoolE '/=' BoolE
-    | BoolE '==' BoolE
+BComp : BoolE '/=' BoolE {[]}
+    | BoolE '==' BoolE   {[]}
 
-Type : number
-    | bool
+Type : number {[]}
+    | boolean {[]}
 
-Dec: Type id = Exp
-    | Type Ids id
+Dec: Type id '=' Exp {[]}
+    | Type Ids id  {[]}
 
-Ids : {- empty -}
-    | Ids id ','
+Ids : {- empty -} {[]}
+    | Ids id ','  {[]}
 
-Assig : id = Exp
+Assig : id '=' Exp {[]}
 
-Read : read id
+Read : read id {[]}
 
-Write : write Prints Print
+Write : write Prints Print {[]}
 
-WriteL : writeln Prints Print
+WriteL : writeln Prints Print {[]}
 
-Print : str
-    | Exp
+Print : str {[]}
+    | Exp {[]}
 
-Prints : {- empty -}
-    | Prints Print ','
+Prints : {- empty -} {[]}
+    | Prints Print ',' {[]}
 
-DefFunc : DFun
-    | DFunR
+DefFunc : DFun {[]}
+    | DFunR {[]}
 
-DFun : func id '(' Pars ')' begin Is end
+DFun : func id '(' Pars ')' begin Is end {[]}
 
-DFunR : func id '(' Pars ')' '->' Type begin Is end
+DFunR : func id '(' Pars ')' '->' Type begin Is end {[]}
 
-Pars : {- empty -}
-    | Ps Par
+Pars : {- empty -} {[]}
+    | Ps Par       {[]}
 
-Ps : {-empty-}
-    | Ps Par,
+Ps : {-empty-} {[]}
+    | Ps Par ','  {[]}
 
-Par : Type id
+Par : Type id {[]}
 
-Block : Do
-    | If
-    | IfElse
-    | While
-    | For
-    | ForBy
-    | Repeat
+Block : Do   {[]}
+    | If     {[]}
+    | IfElse {[]}
+    | While  {[]}
+    | For    {[]}
+    | ForBy  {[]}
+    | Repeat {[]}
 
-Do : with Dec do Is end
+Do : with Dec do Is end {[]}
 
-If : if BoolE then Is end
+If : if BoolE then Is end {[]}
 
-IfElse : if BoolE then Is end
+IfElse : if BoolE then Is end {[]}
 
-While : while BoolE do Is end
+While : while BoolE do Is end {[]}
 
-For : for id from AritE to AritE do Is end
+For : for id from AritE to AritE do Is end {[]}
 
-ForBy : for id from AritE to AritE by AritE do Is end
+ForBy : for id from AritE to AritE by AritE do Is end {[]}
 
-Repeat : repeat AritE times Is end
+Repeat : repeat AritE times Is end {[]}
 
-Ins : Block
-    | Read
-    | Write
-    | WriteL
-    | Assig
+Ins : Block  {[]}
+    | Read   {[]}
+    | Write  {[]}
+    | WriteL {[]}
+    | Assig  {[]}
 
 {
 
