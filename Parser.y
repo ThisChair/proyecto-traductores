@@ -55,9 +55,9 @@ import Lexer
     number  { TNumber _ }
     true    { TTrue _ }
     false   { TFalse _ }
-    id      { TIdent $$ _ }
-    num     { TNumber $$ _ }
-    str     { TString $$ _ }
+    id      { TIdent _ $$ }
+    num     { TNumber _ $$ }
+    str     { TString _ $$ }
 
 %left or
 %left and
@@ -68,17 +68,16 @@ import Lexer
 
 %%
 
+S : Funs program Is end ';' {[]}
+
 Funs : {- empty -}     {[]}
     | Funs DefFunc ';' {[]}
 
 Is : {- empty -} {[]}
     | Is Ins ';' {[]}
 
-S : Funs program Is end ';' {[]}
-
 Exp : BoolE       {[]}
     | AritE       {[]}
-    | '(' Exp ')' {[]}
     
 AritE : AritE '+' AritE   {[]}
     | AritE '-' AritE     {[]}
@@ -87,12 +86,14 @@ AritE : AritE '+' AritE   {[]}
     | AritE '%' AritE     {[]}
     | AritE div AritE     {[]}
     | AritE mod AritE     {[]}
+    | '(' AritE ')'       {[]}
     | '-' AritE %prec NEG {[]}
     | num                 {[]}
     | id                  {[]}
     
 BoolE : BoolE or BoolE {[]}
     | BoolE and BoolE  {[]}
+    | '(' BoolE ')'    {[]}
     | not BoolE        {[]}
     | AComp            {[]}
     | BComp            {[]}
@@ -160,7 +161,7 @@ Do : with Dec do Is end {[]}
 
 If : if BoolE then Is end {[]}
 
-IfElse : if BoolE then Is end {[]}
+IfElse : if BoolE then Is else Is end {[]}
 
 While : while BoolE do Is end {[]}
 
