@@ -23,14 +23,14 @@ P:
     FUNS  -> FUNS DEFFUNC; 
     IS    -> λ
     IS    -> IS INS;
-    S     -> FUNS program LB FUNS  
+    S     -> FUNS program IS end;
     
     # Expresiones
     EXP   -> BE
     EXP   -> AE
     
     #Expresiones aritméticas
-    EA    -> TERMS
+    AE    -> TERMS
     TERMS -> TERM
     TERMS -> TERMS + TERM
     TERMS -> TERMS - TERM

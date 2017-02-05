@@ -36,7 +36,8 @@ tokens :-
     \=\=                    { (\p s -> TEq p ) }
     \>\=                    { (\p s -> TMoreEq p ) }
     \<\=                    { (\p s -> TLessEq p ) }
-    \-\>                    { (\p s -> TReturn p ) }
+    \-\>                    { (\p s -> TArrow p ) }
+    return                  { (\p s -> TReturn p ) }
     \=                      { (\p s -> TAssign p ) }
     \+                      { (\p s -> TPlus p ) }
     \-                      { (\p s -> TMinus p ) }
@@ -87,6 +88,7 @@ data Token =
     TEq         AlexPosn            |
     TMoreEq     AlexPosn            |
     TLessEq     AlexPosn            |
+    TArrow      AlexPosn            |
     TReturn     AlexPosn            |
     TAssign     AlexPosn            |
     TPlus       AlexPosn            |
