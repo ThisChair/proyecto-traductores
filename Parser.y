@@ -55,9 +55,9 @@ import Lexer
     number  { TNumber _ }
     true    { TTrue _ }
     false   { TFalse _ }
-    id      { TIdent _ }
-    num     { TNumber _ }
-    str     { TString _ }
+    id      { TIdent $$ _ }
+    num     { TNumber $$ _ }
+    str     { TString $$ _ }
 
 %left or
 %left and
