@@ -51,13 +51,14 @@ import Lexer
     '%'     { TPercent _ }
     ','     { TComma _ }
     ';'     { TSColon _ }
-    boolean { TBoolean _ }
+    Expan { TExpan _ }
     number  { TNumber _ }
     true    { TTrue _ }
     false   { TFalse _ }
     id      { TIdent _ $$ }
     num     { TNumber _ $$ }
     str     { TString _ $$ }
+
 
 %left or
 %left and
@@ -75,46 +76,36 @@ Funs : {- empty -}     {[]}
 
 Is : {- empty -} {[]}
     | Is Ins ';' {[]}
-
-Exp : BoolE       {[]}
-    | AritE       {[]}
     
-AritE : AritE '+' AritE   {[]}
-    | AritE '-' AritE     {[]}
-    | AritE '*' AritE     {[]}
-    | AritE '/' AritE     {[]}
-    | AritE '%' AritE     {[]}
-    | AritE div AritE     {[]}
-    | AritE mod AritE     {[]}
-    | '(' AritE ')'       {[]}
-    | '-' AritE %prec NEG {[]}
+Exp : Exp '+' Exp   {[]}
+    | Exp '-' Exp     {[]}
+    | Exp '*' Exp     {[]}
+    | Exp '/' Exp     {[]}
+    | Exp '%' Exp     {[]}
+    | Exp div Exp     {[]}
+    | Exp mod Exp     {[]}
+    | '(' Exp ')'       {[]}
+    | '-' Exp %prec NEG {[]}
     | num                 {[]}
-    | id                  {[]}
-    
-BoolE : BoolE or BoolE {[]}
-    | BoolE and BoolE  {[]}
-    | '(' BoolE ')'    {[]}
-    | not BoolE        {[]}
-    | AComp            {[]}
-    | BComp            {[]}
+    | Exp or Exp {[]}
+    | Exp and Exp  {[]}
+    | not Exp        {[]}
+    | Comp            {[]}
     | true             {[]}
     | false            {[]}
     | id               {[]}
 
-AComp : AritE '>=' AritE {[]}
-    | AritE '>' AritE    {[]}
-    | AritE '<=' AritE   {[]}
-    | AritE '<' AritE    {[]}
-    | AritE '/=' AritE   {[]}
-    | AritE '==' AritE   {[]}
-
-BComp : BoolE '/=' BoolE {[]}
-    | BoolE '==' BoolE   {[]}
+Comp : Exp '>=' Exp {[]}
+    | Exp '>' Exp    {[]}
+    | Exp '<=' Exp   {[]}
+    | Exp '<' Exp    {[]}
+    | Exp '/=' Exp   {[]}
+    | Exp '==' Exp   {[]}
 
 Type : number {[]}
-    | boolean {[]}
+    | Expan {[]}
 
-Dec: Type id '=' Exp {[]}
+Dec: Type Assig {[]}
     | Type Ids id  {[]}
 
 Ids : {- empty -} {[]}
@@ -159,17 +150,17 @@ Block : Do   {[]}
 
 Do : with Dec do Is end {[]}
 
-If : if BoolE then Is end {[]}
+If : if Exp then Is end {[]}
 
-IfElse : if BoolE then Is else Is end {[]}
+IfElse : if Exp then Is else Is end {[]}
 
-While : while BoolE do Is end {[]}
+While : while Exp do Is end {[]}
 
-For : for id from AritE to AritE do Is end {[]}
+For : for id from Exp to Exp do Is end {[]}
 
-ForBy : for id from AritE to AritE by AritE do Is end {[]}
+ForBy : for id from Exp to Exp by Exp do Is end {[]}
 
-Repeat : repeat AritE times Is end {[]}
+Repeat : repeat Exp times Is end {[]}
 
 Ins : Block  {[]}
     | Read   {[]}
