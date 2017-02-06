@@ -105,11 +105,14 @@ Comp : Exp '>=' Exp {[]}
 Type : number {[]}
     | Expan {[]}
 
-Dec: Type Assig {[]}
-    | Type Ids id  {[]}
 
-Ids : {- empty -} {[]}
-    | Ids id ','  {[]}
+Dec: Type id  {[]}
+    | Type id '=' Exp     {[]}
+    | Type id ',' Ids     {[]}
+
+Ids: id           {[]}
+    | id ',' Ids  {[]}
+
 
 Assig : id '=' Exp {[]}
 
