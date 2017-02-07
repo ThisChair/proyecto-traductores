@@ -153,9 +153,15 @@ Ins : Block  {[]}
     | WriteL {[]}
     | Assig  {[]}
 
-DFun : func id '(' Pars ')' begin Is end            {[]}
+DFun : func id '(' Pars ')' begin FBody end {[]}
 
-DFunR : func id '(' Pars ')' '->' Type begin Is end {[]}
+DFunR : func id '(' Pars ')' '->' Type begin FBody end {[]}
+
+FBody : {- empty -} {[]}
+    | FBody Ret ';' {[]}
+    | FBody Ins ';' {[]}
+    
+Ret : return Exp ';' {[]}
 
 Pars : {- empty -}                                  {[]}
     | Ps Par                                        {[]}
