@@ -1,5 +1,5 @@
 {
-module Parser where
+module Parse where
 import Lexer
 }
 
@@ -51,12 +51,12 @@ import Lexer
     '%'     { TPercent _ }
     ','     { TComma _ }
     ';'     { TSColon _ }
-    Expan { TExpan _ }
+    boolean { TBoolean _ }
     number  { TNumber _ }
     true    { TTrue _ }
     false   { TFalse _ }
     id      { TIdent _ $$ }
-    num     { TNumber _ $$ }
+    num     { TNum _ $$ }
     str     { TString _ $$ }
 
 
@@ -69,107 +69,112 @@ import Lexer
 
 %%
 
-S : Funs program Is end ';' {[]}
+S : Funs program Is end ';'         {[0]}
 
-Funs : {- empty -}     {[]}
-    | Funs DefFunc ';' {[]}
+Funs : {- empty -}                  {[0]}
+    | Funs DefFunc ';'              {[0]}
 
-Is : {- empty -} {[]}
-    | Is Ins ';' {[]}
+Is : {- empty -}                    {[0]}
+    | Is Ins ';'                    {[0]}
     
-Exp : Exp '+' Exp   {[]}
-    | Exp '-' Exp     {[]}
-    | Exp '*' Exp     {[]}
-    | Exp '/' Exp     {[]}
-    | Exp '%' Exp     {[]}
-    | Exp div Exp     {[]}
-    | Exp mod Exp     {[]}
-    | '(' Exp ')'       {[]}
-    | '-' Exp %prec NEG {[]}
-    | num                 {[]}
-    | Exp or Exp {[]}
-    | Exp and Exp  {[]}
-    | not Exp        {[]}
-    | Comp            {[]}
-    | true             {[]}
-    | false            {[]}
-    | id               {[]}
+Exp : Exp '+' Exp                   {[0]}
+    | Exp '-' Exp                   {[0]}
+    | Exp '*' Exp                   {[0]}
+    | Exp '/' Exp                   {[0]}
+    | Exp '%' Exp                   {[0]}
+    | Exp div Exp                   {[0]}
+    | Exp mod Exp                   {[0]}
+    | '(' Exp ')'                   {[0]}
+    | '-' Exp %prec NEG             {[0]}
+    | num                           {[0]}
+    | Exp or Exp                    {[0]}
+    | Exp and Exp                   {[0]}
+    | not Exp                       {[0]}
+    | Comp                          {[0]}
+    | true                          {[0]}
+    | false                         {[0]}
+    | id                            {[0]}
 
-Comp : Exp '>=' Exp {[]}
-    | Exp '>' Exp    {[]}
-    | Exp '<=' Exp   {[]}
-    | Exp '<' Exp    {[]}
-    | Exp '/=' Exp   {[]}
-    | Exp '==' Exp   {[]}
+Comp : Exp '>=' Exp                 {[0]}
+    | Exp '>' Exp                   {[0]}
+    | Exp '<=' Exp                  {[0]}
+    | Exp '<' Exp                   {[0]}
+    | Exp '/=' Exp                  {[0]}
+    | Exp '==' Exp                  {[0]}
 
-Type : number {[]}
-    | Expan {[]}
+Type : number                       {[0]}
+    | boolean                       {[0]}
+--   | Expan {[]}
+
+Ds : {- empty -}                    {[0]}
+    | Ds Dec ';'                    {[0]}
+
+Dec: Type id                        {[0]}
+    | Type id '=' Exp               {[0]}
+    | Type id ',' Ids               {[0]}
+
+Ids: id                             {[0]}
+    | id ',' Ids                    {[0]}
 
 
-Dec: Type id  {[]}
-    | Type id '=' Exp     {[]}
-    | Type id ',' Ids     {[]}
+Assig : id '=' Exp                  {[0]}
 
-Ids: id           {[]}
-    | id ',' Ids  {[]}
+Read : read id                      {[0]}
 
+Write : write Prints Print          {[0]}
 
-Assig : id '=' Exp {[]}
+WriteL : writeln Prints Print       {[0]}
 
-Read : read id {[]}
+Print : str                         {[]}
+    | Exp                           {[]}
 
-Write : write Prints Print {[]}
+Prints : {- empty -}                {[]}
+    | Prints Print ','              {[]}
 
-WriteL : writeln Prints Print {[]}
+DefFunc : DFun                      {[]}
+    | DFunR                         {[]}
+    
+Ps : {-empty-}                      {[]}
+    | Ps Par ','                    {[]}
 
-Print : str {[]}
-    | Exp {[]}
+Par : Type id                       {[]}
 
-Prints : {- empty -} {[]}
-    | Prints Print ',' {[]}
-
-DefFunc : DFun {[]}
-    | DFunR {[]}
-
-DFun : func id '(' Pars ')' begin Is end {[]}
-
-DFunR : func id '(' Pars ')' '->' Type begin Is end {[]}
-
-Pars : {- empty -} {[]}
-    | Ps Par       {[]}
-
-Ps : {-empty-} {[]}
-    | Ps Par ','  {[]}
-
-Par : Type id {[]}
-
-Block : Do   {[]}
-    | If     {[]}
-    | IfElse {[]}
-    | While  {[]}
-    | For    {[]}
-    | ForBy  {[]}
-    | Repeat {[]}
-
-Do : with Dec do Is end {[]}
-
-If : if Exp then Is end {[]}
-
-IfElse : if Exp then Is else Is end {[]}
-
-While : while Exp do Is end {[]}
-
-For : for id from Exp to Exp do Is end {[]}
-
-ForBy : for id from Exp to Exp by Exp do Is end {[]}
-
-Repeat : repeat Exp times Is end {[]}
+Block : Do                          {[]}
+    | If                            {[]}
+    | IfElse                        {[]}
+    | While                         {[]}
+    | For                           {[]}
+    | ForBy                         {[]}
+    | Repeat                        {[]}
 
 Ins : Block  {[]}
     | Read   {[]}
     | Write  {[]}
     | WriteL {[]}
     | Assig  {[]}
+
+DFun : func id '(' Pars ')' begin Is end            {[]}
+
+DFunR : func id '(' Pars ')' '->' Type begin Is end {[]}
+
+Pars : {- empty -}                                  {[]}
+    | Ps Par                                        {[]}
+
+Do : with Ds do Is end                              {[]}
+
+If : if Exp then Is end                             {[]}
+
+IfElse : if Exp then Is else Is end                 {[]}
+
+While : while Exp do Is end                         {[]}
+
+For : for id from Exp to Exp do Is end              {[]}
+
+ForBy : for id from Exp to Exp by Exp do Is end     {[]}
+
+Repeat : repeat Exp times Is end                    {[]}
+
+
 
 {
 
