@@ -10,52 +10,52 @@ $nothing = ~[]
 tokens :-
     $white+                 ;
     \#.*\n                  ;
-    program                 { (\p s -> TProgram p ) }
-    read                    { (\p s -> TRead p ) }
-    writeln                 { (\p s -> TWriteLn p ) }
-    write                   { (\p s -> TWrite p ) }
-    end                     { (\p s -> TEnd p ) }
+    program                 { (\p s -> TProgram p) }
+    read                    { (\p s -> TRead p) }
+    writeln                 { (\p s -> TWriteLn p) }
+    write                   { (\p s -> TWrite p) }
+    begin                   { (\p s -> TBegin p) }
+    end                     { (\p s -> TEnd p) }
     with                    { (\p s -> TWith p) }
-    do                      { (\p s -> TDo p ) }
-    if                      { (\p s -> TIf p ) }
-    then                    { (\p s -> TThen p ) }
-    else                    { (\p s -> TElse p ) }
-    while                   { (\p s -> TWhile p ) }
-    for                     { (\p s -> TFor p ) }
-    from                    { (\p s -> TFrom p ) }
-    to                      { (\p s -> TTo p ) }
-    by                      { (\p s -> TBy p ) }
-    repeat                  { (\p s -> TRepeat p ) }
-    times                   { (\p s -> TTimes p ) }
-    func                    { (\p s -> TFunc p ) }
-    begin                   { (\p s -> TBegin p ) }
-    not                     { (\p s -> TNot p ) }
-    and                     { (\p s -> TAnd p ) }
-    or                      { (\p s -> TOr p ) }
-    div                     { (\p s -> TDiv p ) }
-    mod                     { (\p s -> TMod p ) }
-    \/\=                    { (\p s -> TNotEq p ) }
-    \=\=                    { (\p s -> TEq p ) }
-    \>\=                    { (\p s -> TMoreEq p ) }
-    \<\=                    { (\p s -> TLessEq p ) }
-    \-\>                    { (\p s -> TArrow p ) }
-    return                  { (\p s -> TReturn p ) }
-    \=                      { (\p s -> TAssign p ) }
-    \+                      { (\p s -> TPlus p ) }
-    \-                      { (\p s -> TMinus p ) }
-    \*                      { (\p s -> TStar p ) }
-    \/                      { (\p s -> TSlash p ) }
-    \(                      { (\p s -> TOpenP p ) }
-    \)                      { (\p s -> TCloseP p ) }
-    \<                      { (\p s -> TLess p ) }
-    \>                      { (\p s -> TMore p ) }
-    \%                      { (\p s -> TPercent p ) }
-    \,                      { (\p s -> TComma p ) }
-    \;                      { (\p s -> TSColon p ) }
-    boolean                 { (\p s -> TBoolean p ) }
-    number                  { (\p s -> TNumber p ) }
-    true                    { (\p s -> TTrue p ) }
-    false                   { (\p s -> TFalse p ) }
+    do                      { (\p s -> TDo p) }
+    if                      { (\p s -> TIf p) }
+    then                    { (\p s -> TThen p) }
+    else                    { (\p s -> TElse p) }
+    while                   { (\p s -> TWhile p) }
+    for                     { (\p s -> TFor p) }
+    from                    { (\p s -> TFrom p) }
+    to                      { (\p s -> TTo p) }
+    by                      { (\p s -> TBy p) }
+    repeat                  { (\p s -> TRepeat p) }
+    times                   { (\p s -> TTimes p) }
+    func                    { (\p s -> TFunc p) }
+    return                  { (\p s -> TReturn p) }
+    not                     { (\p s -> TNot p) }
+    and                     { (\p s -> TAnd p) }
+    or                      { (\p s -> TOr p) }
+    div                     { (\p s -> TDiv p) }
+    mod                     { (\p s -> TMod p) }
+    \/\=                    { (\p s -> TNotEq p) }
+    \=\=                    { (\p s -> TEq p) }
+    \>\=                    { (\p s -> TMoreEq p) }
+    \<\=                    { (\p s -> TLessEq p) }
+    \-\>                    { (\p s -> TArrow p) }
+    \=                      { (\p s -> TAssign p) }
+    \+                      { (\p s -> TPlus p) }
+    \-                      { (\p s -> TMinus p) }
+    \*                      { (\p s -> TStar p) }
+    \/                      { (\p s -> TSlash p) }
+    \(                      { (\p s -> TOpenP p) }
+    \)                      { (\p s -> TCloseP p) }
+    \<                      { (\p s -> TLess p) }
+    \>                      { (\p s -> TMore p) }
+    \%                      { (\p s -> TPercent p) }
+    \,                      { (\p s -> TComma p) }
+    \;                      { (\p s -> TSColon p) }
+    boolean                 { (\p s -> TBoolean p) }
+    number                  { (\p s -> TNumber p) }
+    true                    { (\p s -> TTrue p) }
+    false                   { (\p s -> TFalse p) }
     [a-z][a-zA-Z0-9_]*      { (\p s -> TIdent p s) }
     [0-9]+(\.[0-9]+)*       { (\p s -> TNum p (read s)) }
     \"($print | (\\\\) | (\\n) | (\\\"))*\"       
@@ -68,8 +68,10 @@ data Token =
     TRead       AlexPosn            |
     TWriteLn    AlexPosn            |
     TWrite      AlexPosn            |
+    TBegin      AlexPosn            |
     TEnd        AlexPosn            |
     TWith       AlexPosn            |
+    TBy         AlexPosn            |
     TDo         AlexPosn            |
     TIf         AlexPosn            |
     TThen       AlexPosn            |
@@ -78,7 +80,6 @@ data Token =
     TFor        AlexPosn            |
     TFrom       AlexPosn            |
     TTo         AlexPosn            |
-    TBy         AlexPosn            |
     TRepeat     AlexPosn            |
     TTimes      AlexPosn            |
     TFunc       AlexPosn            |
@@ -86,13 +87,12 @@ data Token =
     TAnd        AlexPosn            |
     TOr         AlexPosn            |
     TDiv        AlexPosn            |
+    TReturn     AlexPosn            |
     TMod        AlexPosn            |
     TNotEq      AlexPosn            |
     TEq         AlexPosn            |
     TMoreEq     AlexPosn            |
     TLessEq     AlexPosn            |
-    TArrow      AlexPosn            |
-    TReturn     AlexPosn            |
     TAssign     AlexPosn            |
     TPlus       AlexPosn            |
     TMinus      AlexPosn            |
@@ -105,6 +105,7 @@ data Token =
     TPercent    AlexPosn            |
     TComma      AlexPosn            |
     TSColon     AlexPosn            |
+    TArrow      AlexPosn            |
     TBoolean    AlexPosn            |
     TNumber     AlexPosn            |
     TTrue       AlexPosn            |
@@ -115,4 +116,6 @@ data Token =
     TUndef      AlexPosn String
     deriving (Eq,Show)
     
+
+
 }
