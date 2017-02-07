@@ -3,7 +3,7 @@ import Lexer
 import System.IO
 import System.Environment
 import Data.Char
-import Parse
+import Parser
 
 show_pos :: Token -> String
 show_pos (TUndef (AlexPn _ i j) s)   = "linea " ++ show i ++ ", columna " ++ show j
