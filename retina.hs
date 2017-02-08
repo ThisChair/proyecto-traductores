@@ -4,21 +4,7 @@ import System.IO
 import System.Environment
 import Data.Char
 import Parser
-
-show_pos :: Token -> String
-show_pos (TUndef (AlexPn _ i j) s)   = "linea " ++ show i ++ ", columna " ++ show j
-
-
-show_val :: Token -> String
-show_val (TUndef p s)   = s
-
-show_token:: Token -> String
-show_token tok = show_pos tok ++ ": caracter inesperado" ++ " '" ++ show_val tok ++ "'"
-
-
-undef :: Token -> Bool
-undef (TUndef p s) = True
-undef _ = False
+import TokenInfo
 
 filePath :: [String] -> String
 filePath [] = error "No se introdujo un archivo."
