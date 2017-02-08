@@ -5,6 +5,7 @@ import System.Environment
 import Data.Char
 import Parser
 import TokenInfo
+import Tree
 
 filePath :: [String] -> String
 filePath [] = error "No se introdujo un archivo."
@@ -25,4 +26,4 @@ main = do
       False -> do mapM_ putStrLn $ map show_token inv
       True  -> do 
                 let parse = parseRet toks
-                putStrLn $ show parse
+                printTree 0 parse
