@@ -1,6 +1,7 @@
 {
 module Parser where
 import Lexer
+import TokenInfo
 }
 
 %name parseRet
@@ -90,17 +91,18 @@ Exp : Exp '+' Exp                   {[0]}
     | Exp or Exp                    {[0]}
     | Exp and Exp                   {[0]}
     | not Exp                       {[0]}
-    | Comp                          {[0]}
-    | true                          {[0]}
-    | false                         {[0]}
-    | id                            {[0]}
-
-Comp : Exp '>=' Exp                 {[0]}
+    | Exp '>=' Exp                  {[0]}
     | Exp '>' Exp                   {[0]}
     | Exp '<=' Exp                  {[0]}
     | Exp '<' Exp                   {[0]}
     | Exp '/=' Exp                  {[0]}
     | Exp '==' Exp                  {[0]}
+    | true                          {[0]}
+    | false                         {[0]}
+    | id                            {[0]}
+    | FCall                         {[0]}
+
+FCall: id '(' Exp ')'               {[0]}    
 
 Type : number                       {[0]}
     | boolean                       {[0]}
@@ -152,6 +154,7 @@ Ins : Block  {[]}
     | Write  {[]}
     | WriteL {[]}
     | Assig  {[]}
+    | FCall  {[]}
 
 DFun : func id '(' Pars ')' begin FBody end {[]}
 
@@ -185,6 +188,7 @@ Repeat : repeat Exp times Is end                    {[]}
 {
 
 parseError :: [Token] -> a
-parseError _ = error "Parse error"
+parseError [] = error $ "Final inesperado"
+parseError t = error $ show_pos (head t) ++ ": token inesperado: " ++ show_val (head t)
 
 }
