@@ -2,6 +2,8 @@
 module Parser where
 import Lexer
 import TokenInfo
+import Tree
+import Data.Tree
 }
 
 %name parseRet
@@ -56,9 +58,9 @@ import TokenInfo
     number  { TNumber _ }
     true    { TTrue _ }
     false   { TFalse _ }
-    id      { TIdent _ $$ }
-    num     { TNum _ $$ }
-    str     { TString _ $$ }
+    id      { TIdent _ _ }
+    num     { TNum _ _ }
+    str     { TString _ _ }
 
 
 %left or
@@ -70,13 +72,13 @@ import TokenInfo
 
 %%
 
-S : Funs program Is end ';'         {[0]}
+S : Funs program Is end ';'         {Node Init [Node (IsToken $2) $3]}
 
-Funs : {- empty -}                  {[0]}
-    | Funs DefFunc ';'              {[0]}
+Funs : {- empty -}                  {[]}
+    | DefFunc ';' Funs              {[]}
 
-Is : {- empty -}                    {[0]}
-    | Is Ins ';'                    {[0]}
+Is : {- empty -}                    {[]}
+    | Ins ';' Is                    {[$1] ++ $3}
     
 Exp : Exp '+' Exp                   {[0]}
     | Exp '-' Exp                   {[0]}
@@ -104,22 +106,22 @@ Exp : Exp '+' Exp                   {[0]}
 
 FCall: id '(' Exp ')'               {[0]}    
 
-Type : number                       {[0]}
-    | boolean                       {[0]}
---   | Expan {[]}
-
-Ds : {- empty -}                    {[0]}
-    | Ds Dec ';'                    {[0]}
-
-Dec: Type id                        {[0]}
-    | Type id '=' Exp               {[0]}
-    | Type id ',' Ids               {[0]}
-
-Ids: id                             {[0]}
-    | id ',' Ids                    {[0]}
+Type : number                       {IsToken $1}
+    | boolean                       {IsToken $1}
 
 
-Assig : id '=' Exp                  {[0]}
+Ds : {- empty -}                    {[]}
+    | Dec ';' Ds                    {[$1] ++ $3}
+
+Dec: Type id                        {Node $1 [Node (IsToken $2) []]}
+    | Type id '=' Exp               {Node $1 [Node (IsToken $2) [], Node (IsToken $3) []]}
+    | Type id ',' Ids               {Node $1 ([Node (IsToken $2) []] ++ $4)}
+
+Ids: id                             {[Node (IsToken $1) []]}
+    | id ',' Ids                    {[Node (IsToken $1) []] ++ $3}
+
+
+Assig : id '=' Exp                  {Node (IsToken $1) []}
 
 Read : read id                      {[0]}
 
@@ -141,20 +143,20 @@ Ps : {-empty-}                      {[]}
 
 Par : Type id                       {[]}
 
-Block : Do                          {[]}
-    | If                            {[]}
-    | IfElse                        {[]}
-    | While                         {[]}
-    | For                           {[]}
-    | ForBy                         {[]}
-    | Repeat                        {[]}
+Block : Do                          {$1}
+--    | If                            {}
+--    | IfElse                        {}
+--    | While                         {}
+--    | For                           {}
+--    | ForBy                         {}
+--    | Repeat                        {}
 
-Ins : Block  {[]}
-    | Read   {[]}
-    | Write  {[]}
-    | WriteL {[]}
-    | Assig  {[]}
-    | FCall  {[]}
+Ins : Block  {$1}
+--    | Read   {}
+--    | Write  {}
+--    | WriteL {}
+    | Assig  {$1}
+--    | FCall  {}
 
 DFun : func id '(' Pars ')' begin FBody end {[]}
 
@@ -169,7 +171,7 @@ Ret : return Exp ';' {[]}
 Pars : {- empty -}                                  {[]}
     | Ps Par                                        {[]}
 
-Do : with Ds do Is end                              {[]}
+Do : with Ds do Is end                              {Node (IsToken $1) [Node Ds $2, Node Is $4]}
 
 If : if Exp then Is end                             {[]}
 
