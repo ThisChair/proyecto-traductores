@@ -72,14 +72,14 @@ import Data.Tree
 
 %%
 
-S : Funs program Is end ';'         {Node Init [Node (IsToken $2) $3]}
+-- inicio
+S : Funs program Is end ';'         {Node Init [Node Funs $1, Node (IsToken $2) [], Node Is $3, Node (IsToken $4) []]}
 
-Funs : {- empty -}                  {[]}
-    | DefFunc ';' Funs              {[$1] ++ $3}
-
+-- secuencia de instrucciones
 Is : {- empty -}                    {[]}
     | Ins ';' Is                    {[$1] ++ $3}
-    
+
+-- expresiones
 Exp : Exp '+' Exp                   {[0]}
     | Exp '-' Exp                   {[0]}
     | Exp '*' Exp                   {[0]}
@@ -104,12 +104,43 @@ Exp : Exp '+' Exp                   {[0]}
     | id                            {[0]}
     | FCall                         {[0]}
 
-FCall: id '(' Exp ')'               {[]}    -- Lista de expresiones
+
+-- funciones
+Funs : {- empty -}                  {[]}
+    | DefFunc ';' Funs              {[$1] ++ $3}
+
+DefFunc : DFun                      {$1}
+    | DFunR                         {$1}
+
+FBody : {- empty -}                 {[]}
+    | Ret ';' FBody                 {[$1] ++ $3}
+    | Ins ';' FBody                 {[$1] ++ $3}
+    
+Ret : return Exp                    {Node (IsToken $1) []}
+
+DFun : func id '(' Pars ')' begin Is end  { Node DFun [Node (IsToken $1)[], Node (IsToken $2) [], Node Pars $4, Node (IsToken $6) [], Node Is $7, Node (IsToken $8) []]}
+
+DFunR : func id '(' Pars ')' '->' Type begin FBody end {Node DFunR [Node (IsToken $1) [], Node (IsToken $2) [], Node Pars $4, Node  (IsToken $6) [], $7, Node (IsToken $8) [], Node FBody $9, Node (IsToken $10) []]}
+
+Pars : {- empty -}                  {[]}
+    | Ps                            {$1}
+Ps : Par                            {[$1]}
+    | Par ',' Ps                    {[$1] ++ $3}
+
+Par : Type id                       {Node Par [$1, Node (IsToken $2) []]}
 
 Type : number                       {Node (IsToken $1) []}
     | boolean                       {Node (IsToken $1) []}
 
+-- llamada a funciones
+FCall: id '(' ExpS ')'              {Node FCall [Node (IsToken $1) [], Node ExpS $3]}
+ExpS : {- empty -}                  {[]}
+    | Es                            {$1}
+Es  : Exp                           {[Node Exp []]}
+    | Exp ',' Es                    {[Node Exp []] ++ $3}
 
+
+-- declaraciones
 Ds : {- empty -}                    {[]}
     | Dec ';' Ds                    {[$1] ++ $3}
 
@@ -117,29 +148,31 @@ Dec: Type id                        {Node Dec [$1, Node (IsToken $2) []]}
     | Type id '=' Exp               {Node Dec [$1, Node (IsToken $2) [], Node (IsToken $3) []]} -- Falta agregar el hijo de expresiones
     | Type id ',' Ids               {Node Dec ([$1, Node (IsToken $2) []] ++ $4)}
 
-Ids: id                                 {[Node (IsToken $1) []]}
-    | id ',' Ids                        {[Node (IsToken $1) []] ++ $3}
+Ids: id                             {[Node (IsToken $1) []]}
+    | id ',' Ids                    {[Node (IsToken $1) []] ++ $3}
 
 
-Assig : id '=' Exp                      {Node Assig [Node (IsToken $1) [], Node (IsToken $2) []]}
+-- tipos de instrucciones
 
-Read : read id                          {Node Read [Node (IsToken $1) [], Node (IsToken $2) []]}
+Ins : Block                         {$1}
+    | Read                          {$1}
+    | Write                         {$1}
+    | WriteL                        {$1}
+    | Assig                         {$1}
+    | FCall                         {$1}
 
---Write : write Print Prints            {Node Write ([Node (IsToken $1) [], Node (IsToken $2) []] ++ $3)}
 
---WriteL : writeln Print Prints         {Node (IsToken $1) ([Node (IsToken $2) []] ++ $3)}
-
+Assig : id '=' Exp                  {Node Assig [Node (IsToken $1) [], Node (IsToken $2) []]}
+Read : read id                      {Node Read [Node (IsToken $1) [], Node (IsToken $2) []]}
+Write : write Prints                {Node Write [Node (IsToken $1) [], Node Prints $2]}
+WriteL : writeln Prints             {Node WriteL [Node (IsToken $1) [], Node Prints $2]}
 Print : str                         {Node (IsToken $1) []}
     | Exp                           {Node Exp []}
-
-Prints : {- empty -}                {[]}
+Prints : Print                      {[]}
     | Print ',' Prints              {[$1] ++ $3}
-
-DefFunc : DFun                      {$1}
-    | DFunR                         {$1}
     
 
-
+-- bloques
 Block : Do                          {$1}
     | If                            {$1}
     | IfElse                        {$1}
@@ -148,44 +181,13 @@ Block : Do                          {$1}
     | ForBy                         {$1}
     | Repeat                        {$1}
 
-Ins : Block  {$1}
---    | Read   {}
---    | Write  {}
---    | WriteL {}
-    | Assig  {$1}
---    | FCall  {}
-
-DFun : func id '(' Pars ')' begin Is end {Node (IsToken $1) [Node (IsToken $2) [], Node Pars $4, Node (IsToken $6) $7]}
-
-DFunR : func id '(' Pars ')' '->' Type begin FBody end {Node (IsToken $1) [Node (IsToken $2) [], Node Pars $4]}
-
-FBody : {- empty -}                                 {[]}
-    | Ret ';' FBody                                 {[$1] ++ $3}
-    | Ins ';' FBody                                 {[$1] ++ $3}
-    
-Ret : return Exp                                    {Node (IsToken $1) []}
-
-Pars : {- empty -}                                  {[]}
-    | Ps                                            {$1}
-
-Ps : Par                                            {[$1]}
-    | Par ',' Ps                                    {[$1] ++ $3}
-
-
-Par : Type id                                       {Node Par [$1, Node (IsToken $2) []]}
 
 Do : with Ds do Is end                              {Node Do [Node (IsToken $1) [], Node Ds $2, Node Is $4]}
-
 If : if Exp then Is end                             {Node If [Node (IsToken $1) [], Node Exp [], Node (IsToken $3) $4]}
-
 IfElse : if Exp then Is else Is end                 {Node IfElse [Node (IsToken $1) [], Node Exp [], Node (IsToken $3) $4, Node (IsToken $5) $6]}
-
 While : while Exp do Is end                         {Node While [Node (IsToken $1)[], Node Exp [], Node (IsToken $3) $4]}
-
 For : for id from Exp to Exp do Is end              {Node For [Node (IsToken $1) [], Node (IsToken $2) [], Node (IsToken $3) [], Node Exp[], Node (IsToken $5) [], Node Exp [], Node (IsToken $7) $8]}
-
 ForBy : for id from Exp to Exp by Exp do Is end     {Node ForBy [Node (IsToken $1) [], Node (IsToken $2) [], Node (IsToken $3) [], Node Exp[], Node (IsToken $5) [], Node Exp [], Node (IsToken $7) [], Node Exp [], Node (IsToken $9) $10]}
-
 Repeat : repeat Exp times Is end                    {Node Repeat [Node (IsToken $1)[], Node Exp [], Node (IsToken $3) $4]}
 
 
