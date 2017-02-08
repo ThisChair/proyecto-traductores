@@ -32,6 +32,7 @@ data TypeNode = Init    |
                 DefFunc |
                 DFun    |
                 DFunR   |
+                FBody   |
                 Pars    |
                 Ps      |
                 Par     |
@@ -44,6 +45,8 @@ data TypeNode = Init    |
                 ForBy   |
                 Repeat  |
                 Ins     |
+                ExpS    |
+                FCall   |
                 IsToken Token 
                 deriving (Show)
 
@@ -70,8 +73,4 @@ printTree h tree = do
       False  ->  do  mapM_  (printTree (h+1))  (children tree)
       True   ->  do  return ()
       
-
-
-
- 
 
