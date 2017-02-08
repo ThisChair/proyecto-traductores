@@ -68,7 +68,7 @@ import Data.Tree
 %nonassoc '>=' '>' '<=' '<' '/=' '=='
 %left '+' '-'
 %left '*' '/' '%' div mod
-%left NEG not
+%right NEG not
 
 %%
 
@@ -117,17 +117,17 @@ Dec: Type id                        {Node Dec [$1, Node (IsToken $2) []]}
     | Type id '=' Exp               {Node Dec [$1, Node (IsToken $2) [], Node (IsToken $3) []]} -- Falta agregar el hijo de expresiones
     | Type id ',' Ids               {Node Dec ([$1, Node (IsToken $2) []] ++ $4)}
 
-Ids: id                             {[Node (IsToken $1) []]}
-    | id ',' Ids                    {[Node (IsToken $1) []] ++ $3}
+Ids: id                                 {[Node (IsToken $1) []]}
+    | id ',' Ids                        {[Node (IsToken $1) []] ++ $3}
 
 
-Assig : id '=' Exp                  {Node Assig [Node (IsToken $1) [], Node (IsToken $2) []]}
+Assig : id '=' Exp                      {Node Assig [Node (IsToken $1) [], Node (IsToken $2) []]}
 
-Read : read id                      {Node Read [Node (IsToken $1) [], Node (IsToken $2) []]}
+Read : read id                          {Node Read [Node (IsToken $1) [], Node (IsToken $2) []]}
 
---Write : write Print Prints          {Node Write ([Node (IsToken $1) [], Node (IsToken $2) []] ++ $3)}
+--Write : write Print Prints            {Node Write ([Node (IsToken $1) [], Node (IsToken $2) []] ++ $3)}
 
---WriteL : writeln Print Prints       {Node (IsToken $1) ([Node (IsToken $2) []] ++ $3)}
+--WriteL : writeln Print Prints         {Node (IsToken $1) ([Node (IsToken $2) []] ++ $3)}
 
 Print : str                         {Node (IsToken $1) []}
     | Exp                           {Node Exp []}
@@ -142,11 +142,11 @@ DefFunc : DFun                      {$1}
 
 Block : Do                          {$1}
     | If                            {$1}
---    | IfElse                        {}
---    | While                         {}
---    | For                           {}
---    | ForBy                         {}
---    | Repeat                        {}
+    | IfElse                        {$1}
+    | While                         {$1}
+    | For                           {$1}
+    | ForBy                         {$1}
+    | Repeat                        {$1}
 
 Ins : Block  {$1}
 --    | Read   {}
@@ -174,26 +174,24 @@ Ps : Par                                            {[$1]}
 
 Par : Type id                                       {Node Par [$1, Node (IsToken $2) []]}
 
-Do : with Ds do Is end                              {Node (IsToken $1) [Node Ds $2, Node Is $4]}
+Do : with Ds do Is end                              {Node Do [Node (IsToken $1) [], Node Ds $2, Node Is $4]}
 
 If : if Exp then Is end                             {Node If [Node (IsToken $1) [], Node Exp [], Node (IsToken $3) $4]}
 
-IfElse : if Exp then Is else Is end                 {[]}
+IfElse : if Exp then Is else Is end                 {Node IfElse [Node (IsToken $1) [], Node Exp [], Node (IsToken $3) $4, Node (IsToken $5) $6]}
 
-While : while Exp do Is end                         {[]}
+While : while Exp do Is end                         {Node While [Node (IsToken $1)[], Node Exp [], Node (IsToken $3) $4]}
 
-For : for id from Exp to Exp do Is end              {[]}
+For : for id from Exp to Exp do Is end              {Node For [Node (IsToken $1) [], Node (IsToken $2) [], Node (IsToken $3) [], Node Exp[], Node (IsToken $5) [], Node Exp [], Node (IsToken $7) $8]}
 
-ForBy : for id from Exp to Exp by Exp do Is end     {[]}
+ForBy : for id from Exp to Exp by Exp do Is end     {Node ForBy [Node (IsToken $1) [], Node (IsToken $2) [], Node (IsToken $3) [], Node Exp[], Node (IsToken $5) [], Node Exp [], Node (IsToken $7) [], Node Exp [], Node (IsToken $9) $10]}
 
-Repeat : repeat Exp times Is end                    {[]}
+Repeat : repeat Exp times Is end                    {Node Repeat [Node (IsToken $1)[], Node Exp [], Node (IsToken $3) $4]}
 
 
 
 {
-
 parseError :: [Token] -> a
 parseError [] = error $ "Final inesperado"
 parseError t = error $ show_pos (head t) ++ ": token inesperado: " ++ show_val (head t)
-
 }
