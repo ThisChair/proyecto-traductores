@@ -80,29 +80,29 @@ Is : {- empty -}                    {[]}
     | Ins ';' Is                    {[$1] ++ $3}
 
 -- expresiones
-Exp : Exp '+' Exp                   {[0]}
-    | Exp '-' Exp                   {[0]}
-    | Exp '*' Exp                   {[0]}
-    | Exp '/' Exp                   {[0]}
-    | Exp '%' Exp                   {[0]}
-    | Exp div Exp                   {[0]}
-    | Exp mod Exp                   {[0]}
-    | '(' Exp ')'                   {[0]}
-    | '-' Exp %prec NEG             {[0]}
-    | num                           {[0]}
-    | Exp or Exp                    {[0]}
-    | Exp and Exp                   {[0]}
-    | not Exp                       {[0]}
-    | Exp '>=' Exp                  {[0]}
-    | Exp '>' Exp                   {[0]}
-    | Exp '<=' Exp                  {[0]}
-    | Exp '<' Exp                   {[0]}
-    | Exp '/=' Exp                  {[0]}
-    | Exp '==' Exp                  {[0]}
-    | true                          {[0]}
-    | false                         {[0]}
-    | id                            {[0]}
-    | FCall                         {[0]}
+Exp : Exp '+' Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
+    | Exp '-' Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
+    | Exp '*' Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
+    | Exp '/' Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
+    | Exp '%' Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
+    | Exp div Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
+    | Exp mod Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
+    | '(' Exp ')'                   {Node Exp [Node (IsToken $1)[], $2, Node (IsToken $3)[]]}
+--    | '-' Exp %prec NEG             {Node Exp [(IsToken $1)[], $2]}
+    | num                           {Node (IsToken $1) []}
+    | Exp or Exp                    {Node Exp [$1, Node (IsToken $2)[], $3]}
+    | Exp and Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
+--    | not Exp                       {Node Exp [(IsToken $1)[], $2]}
+    | Exp '>=' Exp                  {Node Exp [$1, Node (IsToken $2)[], $3]}
+    | Exp '>' Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
+    | Exp '<=' Exp                  {Node Exp [$1, Node (IsToken $2)[], $3]}
+    | Exp '<' Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
+    | Exp '/=' Exp                  {Node Exp [$1, Node (IsToken $2)[], $3]}
+    | Exp '==' Exp                  {Node Exp [$1, Node (IsToken $2)[], $3]}
+    | true                          {Node (IsToken $1) []}
+    | false                         {Node (IsToken $1) []}
+    | id                            {Node (IsToken $1) []}
+    | FCall                         {$1}
 
 
 -- funciones
