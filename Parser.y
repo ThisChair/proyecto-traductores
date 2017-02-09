@@ -136,8 +136,8 @@ Type : number                       {Node (IsToken $1) []}
 FCall: id '(' ExpS ')'              {Node FCall [Node (IsToken $1) [], Node ExpS $3]}
 ExpS : {- empty -}                  {[]}
     | Es                            {$1}
-Es  : Exp                           {[Node Exp []]}
-    | Exp ',' Es                    {[Node Exp []] ++ $3}
+Es  : Exp                           {[$1]}
+    | Exp ',' Es                    {[$1] ++ $3}
 
 
 -- declaraciones
@@ -145,7 +145,7 @@ Ds : {- empty -}                    {[]}
     | Dec ';' Ds                    {[$1] ++ $3}
 
 Dec: Type id                        {Node Dec [$1, Node (IsToken $2) []]}
-    | Type id '=' Exp               {Node Dec [$1, Node (IsToken $2) [], Node (IsToken $3) []]} -- Falta agregar el hijo de expresiones
+    | Type id '=' Exp               {Node Dec [$1, Node (IsToken $2) [], Node (IsToken $3) [], $4]}
     | Type id ',' Ids               {Node Dec ([$1, Node (IsToken $2) []] ++ $4)}
 
 Ids: id                             {[Node (IsToken $1) []]}
@@ -167,8 +167,8 @@ Read : read id                      {Node Read [Node (IsToken $1) [], Node (IsTo
 Write : write Prints                {Node Write [Node (IsToken $1) [], Node Prints $2]}
 WriteL : writeln Prints             {Node WriteL [Node (IsToken $1) [], Node Prints $2]}
 Print : str                         {Node (IsToken $1) []}
-    | Exp                           {Node Exp []}
-Prints : Print                      {[]}
+    | Exp                           {$1}
+Prints : Print                      {[$1]}
     | Print ',' Prints              {[$1] ++ $3}
     
 
@@ -183,12 +183,12 @@ Block : Do                          {$1}
 
 
 Do : with Ds do Is end                              {Node Do [Node (IsToken $1) [], Node Ds $2, Node (IsToken $3) [], Node Is $4, Node (IsToken $5) []]}
-If : if Exp then Is end                             {Node If [Node (IsToken $1) [], Node Exp [], Node (IsToken $3) [], Node Is $4, Node (IsToken $5) []]}
-IfElse : if Exp then Is else Is end                 {Node IfElse [Node (IsToken $1) [], Node Exp [], Node (IsToken $3) [], Node Is $4, Node (IsToken $5) [], Node Is $6, Node (IsToken $7) []]}
-While : while Exp do Is end                         {Node While [Node (IsToken $1) [], Node Exp [], Node (IsToken $3) [], Node Is $4, Node (IsToken $5) []]}
-For : for id from Exp to Exp do Is end              {Node For [Node (IsToken $1) [], Node (IsToken $2) [], Node (IsToken $3) [], Node Exp[], Node (IsToken $5) [], Node Exp [], Node (IsToken $7) [], Node Is $8, Node (IsToken $9) []]}
-ForBy : for id from Exp to Exp by Exp do Is end     {Node ForBy [Node (IsToken $1) [], Node (IsToken $2) [], Node (IsToken $3) [], Node Exp[], Node (IsToken $5) [], Node Exp [], Node (IsToken $7) [], Node Exp [], Node (IsToken $9) [], Node Is $10, Node (IsToken $11) []]}
-Repeat : repeat Exp times Is end                    {Node Repeat [Node (IsToken $1) [], Node Exp [], Node (IsToken $3)[], Node Is $4, Node (IsToken $5) []]}
+If : if Exp then Is end                             {Node If [Node (IsToken $1) [], $2, Node (IsToken $3) [], Node Is $4, Node (IsToken $5) []]}
+IfElse : if Exp then Is else Is end                 {Node IfElse [Node (IsToken $1) [], $2, Node (IsToken $3) [], Node Is $4, Node (IsToken $5) [], Node Is $6, Node (IsToken $7) []]}
+While : while Exp do Is end                         {Node While [Node (IsToken $1) [], $2, Node (IsToken $3) [], Node Is $4, Node (IsToken $5) []]}
+For : for id from Exp to Exp do Is end              {Node For [Node (IsToken $1) [], Node (IsToken $2) [], Node (IsToken $3) [], $4, Node (IsToken $5) [], $6, Node (IsToken $7) [], Node Is $8, Node (IsToken $9) []]}
+ForBy : for id from Exp to Exp by Exp do Is end     {Node ForBy [Node (IsToken $1) [], Node (IsToken $2) [], Node (IsToken $3) [], $4, Node (IsToken $5) [], $6, Node (IsToken $7) [], $8, Node (IsToken $9) [], Node Is $10, Node (IsToken $11) []]}
+Repeat : repeat Exp times Is end                    {Node Repeat [Node (IsToken $1) [], $2, Node (IsToken $3)[], Node Is $4, Node (IsToken $5) []]}
 
 
 
