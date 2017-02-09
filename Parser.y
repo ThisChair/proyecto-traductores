@@ -88,11 +88,11 @@ Exp : Exp '+' Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
     | Exp div Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
     | Exp mod Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
     | '(' Exp ')'                   {Node Exp [Node (IsToken $1)[], $2, Node (IsToken $3)[]]}
---    | '-' Exp %prec NEG             {Node Exp [(IsToken $1)[], $2]}
+    | '-' Exp %prec NEG             {Node Exp [Node (IsToken $1)[], $2]}
     | num                           {Node (IsToken $1) []}
     | Exp or Exp                    {Node Exp [$1, Node (IsToken $2)[], $3]}
     | Exp and Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
---    | not Exp                       {Node Exp [(IsToken $1)[], $2]}
+    | not Exp                       {Node Exp [Node (IsToken $1)[], $2]}
     | Exp '>=' Exp                  {Node Exp [$1, Node (IsToken $2)[], $3]}
     | Exp '>' Exp                   {Node Exp [$1, Node (IsToken $2)[], $3]}
     | Exp '<=' Exp                  {Node Exp [$1, Node (IsToken $2)[], $3]}
