@@ -116,7 +116,7 @@ FBody : {- empty -}                 {[]}
     | Ret ';' FBody                 {[$1] ++ $3}
     | Ins ';' FBody                 {[$1] ++ $3}
     
-Ret : return Exp                    {Node (IsToken $1) []}
+Ret : return Exp                    {Node Ret  [Node (IsToken $1) [], $2]}
 
 DFun : func id '(' Pars ')' begin Is end  { Node DFun [Node (IsToken $1)[], Node (IsToken $2) [], Node Pars $4, Node (IsToken $6) [], Node Is $7, Node (IsToken $8) []]}
 
@@ -162,7 +162,7 @@ Ins : Block                         {$1}
     | FCall                         {$1}
 
 
-Assig : id '=' Exp                  {Node Assig [Node (IsToken $1) [], Node (IsToken $2) []]}
+Assig : id '=' Exp                  {Node Assig [Node (IsToken $1) [], Node (IsToken $2) [], $3]}
 Read : read id                      {Node Read [Node (IsToken $1) [], Node (IsToken $2) []]}
 Write : write Prints                {Node Write [Node (IsToken $1) [], Node Prints $2]}
 WriteL : writeln Prints             {Node WriteL [Node (IsToken $1) [], Node Prints $2]}

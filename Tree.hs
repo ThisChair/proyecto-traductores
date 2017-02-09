@@ -3,6 +3,7 @@ import Data.Tree
 import Lexer
 import System.IO
 import System.Environment
+import TokenInfo
 
 
 -- Es necesario definir los diferentes tipos del arbol
@@ -15,8 +16,6 @@ data TypeNode = Init    |
                 Is      |
                 S       |
                 Exp     |
-                AritE   |
-                BoolE   |
                 AComp   |
                 BComp   |
                 Type    |
@@ -47,11 +46,46 @@ data TypeNode = Init    |
                 Ins     |
                 ExpS    |
                 FCall   |
+                Ret     |
                 IsToken Token 
-                deriving (Show)
+--                deriving (Show)
 
-
-
+instance Show TypeNode where
+    show Init    = "Inicio de programa:"
+    show Funs    = "Funciones:"
+    show Is      = "Instrucción:"
+    show S       = ""
+    show Exp     = "Expresión:"
+    show Type    = "Tipo:"
+    show Dec     = "Declaración:"
+    show Ds      = "Declaraciones:"
+    show Ids     = "Identificadores:"
+    show Assig   = "Asignación:"
+    show Read    = "Leer entrada:"
+    show Write   = "Salida:"
+    show WriteL  = "Salida con salto:"
+    show Print   = "String:"
+    show Prints  = "Strings:"
+    show DefFunc = "Definición de función:"
+    show DFun    = "Función:"
+    show DFunR   = "Función con tipo de retorno:"
+    show FBody   = "Cuerpo de la función:"
+    show Pars    = "Argumentos:"
+    show Ps      = "Argumentos:"
+    show Par     = "Argumento:"
+    show Block   = "Bloque:"
+    show Do      = "With Do:"
+    show If      = "If:"
+    show IfElse  = "If Else:"
+    show While   = "While:"
+    show For     = "For:"
+    show ForBy   = "For By:"
+    show Repeat  = "Repeat:"
+    show Ins     = "Instrucciones:"
+    show ExpS    = "Expresiones:"
+    show FCall   = "Llamada a función:"
+    show Ret     = "Retorno de función:"
+    show (IsToken t) = show_val t
 
 
 children :: Tree a -> Forest a

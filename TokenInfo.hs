@@ -102,9 +102,9 @@ show_val (TBoolean _) = "boolean"
 show_val (TNumber _) = "number"
 show_val (TTrue _) = "true"
 show_val (TFalse _) = "false"
-show_val (TIdent _ s) = s
-show_val (TNum _ s) = show s
-show_val (TString _ s) = s
+show_val (TIdent _ s) = "identificador: " ++ s
+show_val (TNum _ s) = "literal numérico: " ++ show s
+show_val (TString _ s) = "literal string: " ++ s
 show_val (TUndef p s)   = s
 
 
