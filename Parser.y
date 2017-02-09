@@ -185,10 +185,10 @@ Block : Do                          {$1}
 Do : with Ds do Is end                              {Node Do [Node (IsToken $1) [], Node Ds $2, Node (IsToken $3) [], Node Is $4, Node (IsToken $5) []]}
 If : if Exp then Is end                             {Node If [Node (IsToken $1) [], Node Exp [], Node (IsToken $3) [], Node Is $4, Node (IsToken $5) []]}
 IfElse : if Exp then Is else Is end                 {Node IfElse [Node (IsToken $1) [], Node Exp [], Node (IsToken $3) [], Node Is $4, Node (IsToken $5) [], Node Is $6, Node (IsToken $7) []]}
-While : while Exp do Is end                         {Node While [Node (IsToken $1)[], Node Exp [], Node (IsToken $3) $4]}
-For : for id from Exp to Exp do Is end              {Node For [Node (IsToken $1) [], Node (IsToken $2) [], Node (IsToken $3) [], Node Exp[], Node (IsToken $5) [], Node Exp [], Node (IsToken $7) $8]}
-ForBy : for id from Exp to Exp by Exp do Is end     {Node ForBy [Node (IsToken $1) [], Node (IsToken $2) [], Node (IsToken $3) [], Node Exp[], Node (IsToken $5) [], Node Exp [], Node (IsToken $7) [], Node Exp [], Node (IsToken $9) $10]}
-Repeat : repeat Exp times Is end                    {Node Repeat [Node (IsToken $1)[], Node Exp [], Node (IsToken $3) $4]}
+While : while Exp do Is end                         {Node While [Node (IsToken $1) [], Node Exp [], Node (IsToken $3) [], Node Is $4, Node (IsToken $5) []]}
+For : for id from Exp to Exp do Is end              {Node For [Node (IsToken $1) [], Node (IsToken $2) [], Node (IsToken $3) [], Node Exp[], Node (IsToken $5) [], Node Exp [], Node (IsToken $7) [], Node Is $8, Node (IsToken $9) []]}
+ForBy : for id from Exp to Exp by Exp do Is end     {Node ForBy [Node (IsToken $1) [], Node (IsToken $2) [], Node (IsToken $3) [], Node Exp[], Node (IsToken $5) [], Node Exp [], Node (IsToken $7) [], Node Exp [], Node (IsToken $9) [], Node Is $10, Node (IsToken $11) []]}
+Repeat : repeat Exp times Is end                    {Node Repeat [Node (IsToken $1) [], Node Exp [], Node (IsToken $3)[], Node Is $4, Node (IsToken $5) []]}
 
 
 
