@@ -43,7 +43,6 @@ data TypeNode = Init    |
                 For     |
                 ForBy   |
                 Repeat  |
-                Ins     |
                 ExpS    |
                 FCall   |
                 Ret     |
@@ -53,7 +52,7 @@ data TypeNode = Init    |
 instance Show TypeNode where
     show Init    = "Inicio de programa:"
     show Funs    = "Funciones:"
-    show Is      = "Instrucción:"
+    show Is      = "Instrucciones:"
     show S       = ""
     show Exp     = "Expresión:"
     show Type    = "Tipo:"
@@ -81,7 +80,6 @@ instance Show TypeNode where
     show For     = "For:"
     show ForBy   = "For By:"
     show Repeat  = "Repeat:"
-    show Ins     = "Instrucciones:"
     show ExpS    = "Expresiones:"
     show FCall   = "Llamada a función:"
     show Ret     = "Retorno de función:"
