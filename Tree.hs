@@ -14,28 +14,21 @@ import TokenInfo
 data TypeNode = Init    |
                 Funs    |
                 Is      |
-                S       |
                 Exp     |
-                AComp   |
-                BComp   |
                 Type    |
                 Dec     |
                 Ds      |
-                Ids     |
                 Assig   |
                 Read    |
                 Write   |
                 WriteL  |
-                Print   |
                 Prints  |
-                DefFunc |
                 DFun    |
                 DFunR   |
                 FBody   |
                 Pars    |
                 Ps      |
                 Par     |
-                Block   |
                 Do      |
                 If      |
                 IfElse  |
@@ -47,32 +40,24 @@ data TypeNode = Init    |
                 FCall   |
                 Ret     |
                 IsToken Token 
---                deriving (Show)
 
 instance Show TypeNode where
     show Init    = "Inicio de programa:"
     show Funs    = "Funciones:"
     show Is      = "Instrucciones:"
-    show S       = ""
     show Exp     = "Expresión:"
-    show Type    = "Tipo:"
     show Dec     = "Declaración:"
     show Ds      = "Declaraciones:"
-    show Ids     = "Identificadores:"
     show Assig   = "Asignación:"
     show Read    = "Leer entrada:"
     show Write   = "Salida:"
     show WriteL  = "Salida con salto:"
-    show Print   = "String:"
     show Prints  = "Strings:"
-    show DefFunc = "Definición de función:"
     show DFun    = "Función:"
     show DFunR   = "Función con tipo de retorno:"
     show FBody   = "Cuerpo de la función:"
     show Pars    = "Argumentos:"
-    show Ps      = "Argumentos:"
     show Par     = "Argumento:"
-    show Block   = "Bloque:"
     show Do      = "With Do:"
     show If      = "If:"
     show IfElse  = "If Else:"
