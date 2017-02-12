@@ -154,7 +154,8 @@ Ids: id                             {[Node (IsToken $1) []]}
 
 -- tipos de instrucciones
 
-Ins : Block                         {$1}
+Ins : {- empty -}                   {[]}
+    | Block                         {$1}
     | Read                          {$1}
     | Write                         {$1}
     | WriteL                        {$1}
