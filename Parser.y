@@ -1,3 +1,7 @@
+-- Carlos Infante 13-10681
+-- Rubmary Rojas 13-11264
+-- Analizador sintáctico para el lenguaje "Retina".
+
 {
 module Parser where
 import Lexer
@@ -112,15 +116,12 @@ Funs : {- empty -}                  {[]}
 DefFunc : DFun                      {$1}
     | DFunR                         {$1}
 
-FBody : {- empty -}                 {[]}
-    | Ret ';' FBody                 {[$1] ++ $3}
-    | Ins ';' FBody                 {[$1] ++ $3}
     
 Ret : return Exp                    {Node Ret  [Node (IsToken $1) [], $2]}
 
 DFun : func id '(' Pars ')' begin Is end  { Node DFun [Node (IsToken $1)[], Node (IsToken $2) [], Node Pars $4, Node (IsToken $6) [], Node Is $7, Node (IsToken $8) []]}
 
-DFunR : func id '(' Pars ')' '->' Type begin FBody end {Node DFunR [Node (IsToken $1) [], Node (IsToken $2) [], Node Pars $4, Node  (IsToken $6) [], $7, Node (IsToken $8) [], Node FBody $9, Node (IsToken $10) []]}
+DFunR : func id '(' Pars ')' '->' Type begin Is end {Node DFunR [Node (IsToken $1) [], Node (IsToken $2) [], Node Pars $4, Node  (IsToken $6) [], $7, Node (IsToken $8) [], Node Is $9, Node (IsToken $10) []]}
 
 Pars : {- empty -}                  {[]}
     | Ps                            {$1}
@@ -154,13 +155,15 @@ Ids: id                             {[Node (IsToken $1) []]}
 
 -- tipos de instrucciones
 
-Ins : {- empty -}                   {[]}
+Ins : {- empty -}                   {Node Empty []}
     | Block                         {$1}
     | Read                          {$1}
     | Write                         {$1}
     | WriteL                        {$1}
     | Assig                         {$1}
     | FCall                         {$1}
+    | Ret                           {$1}
+
 
 
 Assig : id '=' Exp                  {Node Assig [Node (IsToken $1) [], Node (IsToken $2) [], $3]}
@@ -173,7 +176,7 @@ Prints : Print                      {[$1]}
     | Print ',' Prints              {[$1] ++ $3}
     
 
--- bloques
+-- Estructuras de control (bloques)
 Block : Do                          {$1}
     | If                            {$1}
     | IfElse                        {$1}

@@ -6,8 +6,6 @@ Lexer.hs : Lexer.x
 Parser.hs : Parser.y
 	happy Parser.y
 
-retina : TokenInfo.hs Tree.hs Parser.hs Lexer.hs Calc.hs
+retina : TokenInfo.hs Tree.hs Parser.hs Lexer.hs
 	ghc --make retina
 
-clean:
-    rm -f Calc Lexer.hs Parser.hs *.o *.hi

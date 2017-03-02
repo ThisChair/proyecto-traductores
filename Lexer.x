@@ -1,3 +1,7 @@
+-- Carlos Infante 13-10681
+-- Rubmary Rojas 13-11264
+-- Analizador lexicografico para el lenguaje "Retina".
+
 {
 module Lexer where
 
