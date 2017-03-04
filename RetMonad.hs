@@ -64,6 +64,7 @@ addTable :: SymTable -> SymTable
 addTable symTable = (M.empty:symTable)
 
 -- Moficar ultimo alcance: recibe una funcion que modifica el ultimo alcance
+-- hacer modify (modifyTable $ modifyScope f)
 modifyScope :: (SymScope -> SymScope) -> SymTable -> SymTable
 modifyScope f (s:xs) = (f s : xs)
 
@@ -79,6 +80,15 @@ findSym (ss:xs) id  = if (isNothing var) then (findSym xs id) else var
   where var = M.lookup id ss
 
 
+-- agregar un nuevo simbolo en el ultimo alcance de la tabla de simbolos
+insertSym :: String -> Type -> Double -> Bool -> Scope -> Scope
+insertSym id typeD valNum valBool = modifyTable (modifyScope (M.insert id (Variable typeD valNum valBool)))
+
+-- Verifica si un identificador esta en la tabla de funciones
+-- si encuentra el identificador retorna su informacion
+findFunc :: SymFunc -> String -> Maybe Function
+findFunc symFun id = M.lookup id symFun 
+
 -- Inicia el recorrido del arbol
 start :: Init -> RetMonad ()
 start (Init funs is) = do
@@ -88,6 +98,7 @@ start (Init funs is) = do
 --  mapM_ instruction is
 
 
+-- Recorre las funciones iniciales
 function :: DefFunc -> RetMonad ()
 function input = do
   scope <- get                                                                  -- obtiene todo el estado del monad, lo guarda en scope
@@ -103,6 +114,9 @@ function input = do
   modify(modifyFuncT $ M.insert id (Function typeF types))
   modify(modifyTable  addTable)
   modify(modifyTable $ modifyScope $ addSyms ids types)
+  scopeFinal <- get
+  tell $ S.singleton $ show scopeFinal
+  tell $ S.singleton "\n\n"
 --  Aca recorrer las intrucciones
   modify(modifyTable eraseLastScope)
   where (identifier, pars, is, typeF)               = getAll input
@@ -121,11 +135,37 @@ function input = do
 
 
 
+-- Agrega las declaraciones a la tabla de simbolos
+dec :: Dec -> RetMonad ()
+dec (Dec1 _ [])                   = return ()
+dec (Dec1 t ((TIdent _ id):ds))   = do
+  scope <- get
+  case (M.member id (head $ sym scope)) of
+    True  -> do return ()                                                         -- ERROR ya esta declarada la variable
+    False -> do modify(insertSym id (getType t) 0 False)                          -- agregar la nueva variable a la tabla de simbolos
+                dec (Dec1 t ds)                                                   -- recursion sobre las otras variables declaradas
+  where getType (TBoolean _) = Boolean
+        getType (TNumber   _) = Number
+dec (Dec2 (TBoolean _) (TIdent _ id) exp) = do
+  scope <- get
+  case (M.member id (head $ sym scope)) of
+    True  -> do return ()                                                         -- ERROR ya esta declarada la variable
+    False -> do let val = False                                                   -- Calcular valor de la expresión y tipo
+                modify(insertSym id Boolean 0 val)                                -- verificar que coincida el tipo de declaracion
+dec (Dec2 (TNumber _) (TIdent _ id) exp) = do
+  scope <- get
+  case (M.member id (head $ sym scope)) of
+    True  -> do return ()                                                         -- ERROR ya esta declarada la variable
+    False -> do let val = 0                                                       -- Calcular valor de la expresión y tipo
+                modify(insertSym id Number val False)                             -- verificar que coincida el tipo de declaracion 
 
 
 
-
-
+-- Recorre un bloque do
+-- withDo :: Do -> RetMonad ()
+-- withDo decs is = do
+--  scope 
+ 
 
 
 
