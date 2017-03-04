@@ -1,13 +1,15 @@
-module Main(main) where
+module RetMonad where
 
 import Control.Monad.RWS
 import Tree
 import TokenInfo
 import Lexer
+import Parser
 import Data.Sequence as S
 import Data.Map as M
 import Data.Set as Set
 import Prelude as P
+import Data.Maybe
 
 type SymScope = Map String Variable             -- Tabla de simbolo de un alcance en especifico
 type SymTable = [SymScope]                      -- Tabla de simbolos, realmente es una lista de tablas de simbolos
@@ -50,15 +52,6 @@ initialState =  Scope
                       0
 
 
-
-start :: Init -> RetMonad ()
-start (Init funs is) = do
-  tell $ S.singleton "Funciones iniciales:"
-  mapM_ function funs
-  tell $ S.singleton "program"
---  mapM_ instruction is
-
-
 -- Funcion para modificar la tabla de simbolos
 -- hacer modify (modifyTable f) donde f es una funcion
 -- que toma la tabla de simbolos actual y devuelve otra tabla de simbolos
@@ -77,6 +70,23 @@ modifyScope f (s:xs) = (f s : xs)
 -- Elimina el ultimo alcance
 eraseLastScope :: SymTable -> SymTable
 eraseLastScope (x:xs) = xs
+
+-- Verificar si un identificador esta en la tabla de simbolos
+-- si encuentra el identificador retorna su informacion
+findSym :: SymTable -> String -> Maybe Variable
+findSym []      id  = Nothing
+findSym (ss:xs) id  = if (isNothing var) then (findSym xs id) else var 
+  where var = M.lookup id ss
+
+
+-- Inicia el recorrido del arbol
+start :: Init -> RetMonad ()
+start (Init funs is) = do
+  tell $ S.singleton "Funciones iniciales:"
+  mapM_ function funs
+  tell $ S.singleton "program"
+--  mapM_ instruction is
+
 
 function :: DefFunc -> RetMonad ()
 function input = do
@@ -104,23 +114,13 @@ function input = do
         getType (Par (TNumber _ ) (TIdent _ id))    = Number                      -- funcion para obtener el tipo de un parametro
         getId   (Par _ (TIdent _ id))               = id                          -- funcion para obtener el tipo de un parametro
         types                                       = P.map getType pars          -- obtener los tipos de los parametros
-        ids                                         = P.mp getId   pars          -- obtener los identificadores de los parametros
+        ids                                         = P.map getId   pars          -- obtener los identificadores de los parametros
         modifyFuncT f (Scope x symFunc y z)         = Scope x (f symFunc) y z 
         addSyms [] [] symT                          = symT
         addSyms (x:xs) (y:ys) symT                  = M.insert  x (Variable y 0 False) (addSyms xs ys symT)
 
 
 
-
-
-
-
-
-
-
-
-main :: IO ()
-main = putStrLn "Ok"
 
 
 

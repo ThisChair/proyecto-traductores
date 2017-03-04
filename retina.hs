@@ -10,6 +10,10 @@ import Data.Char
 import Parser
 import TokenInfo
 import Tree
+import Control.Monad.RWS
+import Prelude as P
+import RetMonad
+
 
 -- Obtener archivo con el formato correcto, si no es el archivo correcto
 -- se obtiene un error
@@ -34,7 +38,10 @@ main = do
   let inv =  filter undef toks
   let val = (inv == [])
   case val of
-      False -> do mapM_ putStrLn $ map show_token inv
+      False -> do mapM_ putStrLn $ P.map show_token inv
       True  -> do 
                 let parse = parseRet toks
-                putStrLn $ show parse
+                let (s, w) = execRWS (start parse) "" initialState
+                putStrLn $ show w
+                putStrLn $ show s
+                putStrLn "Ok"
