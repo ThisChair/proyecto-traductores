@@ -9,4 +9,7 @@ Parser.hs : Parser.y
 retina : TokenInfo.hs Tree.hs Parser.hs Lexer.hs
 	ghc --make retina
 
-claen: rm -f Calc Lexer.hs Parser.hs *.o *.hi
+clean :
+	rm -f Lexer.hs Parser.hs *.o *.hi
+
+
