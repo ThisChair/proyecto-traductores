@@ -1,3 +1,7 @@
+-- Recordar que falta el return
+-- modificar estructura scope :(
+
+
 module RetMonad where
 
 import Control.Monad.RWS
@@ -164,7 +168,7 @@ dec (Dec2 (TNumber _) (TIdent _ id) exp) = do
 -- Recorrer un bloque with do
 withDo :: Do -> RetMonad ()
 withDo (Do decs is) = do
-  modify(modifyTable addTable)
+  modify(modifyTable addTable)                                                 -- Crear un nuevo alcance
   P.mapM_ dec decs
   P.mapM_  instruction is                                                      -- RECORRER INSTRUCCIONES
   scopeFinal <- get
@@ -174,12 +178,75 @@ withDo (Do decs is) = do
   modify(modifyTable eraseLastScope)                                            -- Eliminar tabla agregada
 
 
+-- Recorrer un bloque IF
+ifThen :: If -> RetMonad ()
+ifThen (If exp is) = do
+  tell $ S.singleton "Bloque if"
+  let valExp = True                                             -- ACOMODAR CUANDO ESTEN LAS EXPRESIONES
+  P.mapM_ instruction is                                        -- Recorrer las instrucciones
+
+
+-- Recorrer un bloque if else
+ifElse :: IfElse -> RetMonad ()
+ifElse (IfElse exp is1 is2) = do
+  tell $ S.singleton "Bloque if else"
+  let val = True                              -- ACOMODAR CUANDO ESTEN LAS EXPRESIONES
+  tell $ S.singleton "Cuando es true"
+  P.mapM_ instruction is1                     -- Recorrer las instrucciones
+  tell $ S.singleton "Cuando es false"
+  P.mapM_ instruction is2                     -- Recorrer las instrucciones
+  
+-- Recorrer un bloque while
+while :: While -> RetMonad()
+while (While exp is) = do
+  tell $ S.singleton "Bloque while"
+  let val = True                            -- ACOMODAR CUANDO ESTEN LAS INSTRUCCIONES
+  P.mapM_ instruction is                    -- Recorrer las instrucciones
 
 
 
+-- Recorrer un bloque repeat
+rep :: Repeat -> RetMonad ()
+rep (Repeat exp is) = do
+  tell $ S.singleton "Bloque repeat"
+  let val = True                            -- ACOMODAR CUANDO ESTEN LAS EXPRESIONES
+  P.mapM_ instruction is                    -- Recorrer las instrucciones
 
 
+-- Recorrer un bloque for
+for :: For -> RetMonad ()
+for (For (TIdent _ id) exp1 exp2 is) = do
+  tell $ S.singleton "Bloque for"
+  let val1 = 0                              -- ACOMODAR CUANDO SE TENGAN LAS EXPRESIONES
+  let val2 = 10                             -- ACOMODAR CUANDO SE TENGAN LAS EXPRESIONES
+  modify(modifyTable addTable)              -- agregar nuevo alcance
+  modify(insertSym id Number val1 False)    -- agregar el contador a la tabla de simbolos
+  P.mapM_ instruction is                    -- Recorrer instrucciones
+  modify(modifyTable eraseLastScope)        -- Eliminar tabla agregada
 
+
+-- Recorrer un bloque forBy
+forBy :: ForBy -> RetMonad ()
+forBy (ForBy (TIdent _ id) exp1 exp2 exp3 is) = do
+  tell $ S.singleton "Bloque for by"
+  let val1 = 0                              -- ACOMODAR CUANDO SE TENGAN LAS EXPRESIONES
+  let val2 = 10                             -- ACOMODAR CUANDO SE TENGAN LAS EXPRESIONES
+  let val2 = 10                             -- ACOMODAR CUANDO SE TENGAN LAS EXPRESIONES
+  modify(modifyTable addTable)              -- agregar nuevo alcance
+  modify(insertSym id Number val1 False)    -- agregar el contador a la tabla de simbolos
+  P.mapM_ instruction is                    -- Recorrer instrucciones
+  modify(modifyTable eraseLastScope)        -- Eliminar tabla agregada
+  
+
+-- Ejecutar un bloque
+block :: Block -> RetMonad ()
+block (BDo      ins)  = withDo  ins
+block (BIf      ins)  = ifThen  ins
+block (BIfElse  ins)  = ifElse  ins
+block (BWhile   ins)  = while   ins
+block (BFor     ins)  = for     ins
+block (BForby   ins)  = forBy   ins
+block (BRepeat  ins)  = rep     ins
 
 
 -- Ejecutar una instruccion
@@ -188,9 +255,8 @@ instruction (IBlock b)  = block b
 instruction _           = return ()
 
 
-
--- Ejecutar un bloque
-block :: Block -> RetMonad ()
-block (BDo doIns) = withDo doIns
-block _           = return () 
+exp :: Exp -> RetMonad Variable
+exp (EToken (TIdent _ id))  = do
+  scope <- get
+  return (Variable Number 0 False)
 

@@ -74,8 +74,8 @@ data Ins      = IBlock Block    |
                 IEmpty 
                 deriving (Show)
                 
-data Assig    = Assig Token Exp  deriving (Show)                -- Token: identificador
-data ReadId   = ReadId  Token    deriving (Show)                    -- Token: identificador
+data Assig    = Assig Token Exp  deriving (Show)          -- Token: identificador
+data ReadId   = ReadId  Token    deriving (Show)          -- Token: identificador
 data Write    = Write  [Print]   deriving (Show)
 data WriteL   = WriteL [Print]   deriving (Show)
 data Print    = PToken Token |                            -- Token: string para imprimir
@@ -94,8 +94,8 @@ data If       = If Exp [Ins]                  deriving (Show)
 data IfElse   = IfElse Exp [Ins] [Ins]        deriving (Show)
 data While    = While Exp [Ins]               deriving (Show)
 data For      = For   Token Exp Exp [Ins]     deriving (Show)         -- Token: identificador del contador, Exp1: inicio, Exp2: fin
-data ForBy    = ForBy Token Exp Exp Exp [Ins] deriving (Show)     -- Token: identificador del contador, Exp1: inicio, Exp2: fin, Exp3: salto
-data Repeat   = Repeat Exp [Ins]              deriving (Show)                  -- Exp:   cantidad de repeticiones
+data ForBy    = ForBy Token Exp Exp Exp [Ins] deriving (Show)         -- Token: identificador del contador, Exp1: inicio, Exp2: fin, Exp3: salto
+data Repeat   = Repeat Exp [Ins]              deriving (Show)         -- Exp:   cantidad de repeticiones
 
 
 
