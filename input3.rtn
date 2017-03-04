@@ -1,31 +1,9 @@
-
-#funciones
-func circle(number radio)
-begin
-    arc(360, radio);
-end;
-
-func plus(number op1, number op2) -> number
-begin
-    return op1 + op2;
-    for j from 1.5 to 4.5
-      do
-            write j, " ";
-      end;
-      for j from 132 to 786.8 by fdsa
-      do
-          fdsa = 43214.4321;
-          return 78;
-      end;
-      
-end;
-
 #programa principal
 program
   with
       number i;
-      boolean x, y, z;
-      number n = 20;
+      boolean x, y, z, i;
+      number j = 78;
   do
       i = 27;
       abc = 78;
@@ -39,7 +17,6 @@ program
   then
       asdf = 785;
       yuue = 123;
-      do = 8;
   end;
   while
     fdsa or true and x == true or fdsa and fdsaf and f and  (fdsa or not not not j) or false 
@@ -69,3 +46,4 @@ program
       end;
   end;
 end;
+

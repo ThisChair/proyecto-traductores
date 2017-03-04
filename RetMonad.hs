@@ -95,7 +95,7 @@ start (Init funs is) = do
   tell $ S.singleton "Funciones iniciales:"
   mapM_ function funs
   tell $ S.singleton "program"
---  mapM_ instruction is
+  mapM_ instruction is
 
 
 -- Recorre las funciones iniciales
@@ -117,7 +117,7 @@ function input = do
   scopeFinal <- get
   tell $ S.singleton $ show scopeFinal
   tell $ S.singleton "\n\n"
---  Aca recorrer las intrucciones
+  P.mapM_ instruction is
   modify(modifyTable eraseLastScope)
   where (identifier, pars, is, typeF)               = getAll input
         getAll (DFun   id' pars' is')               = (id', pars', is', Void)
@@ -166,9 +166,11 @@ withDo :: Do -> RetMonad ()
 withDo (Do decs is) = do
   modify(modifyTable addTable)
   P.mapM_ dec decs
--- P.mapM_  instruction is                                                      -- RECORRER INSTRUCCIONES
+  P.mapM_  instruction is                                                      -- RECORRER INSTRUCCIONES
   scopeFinal <- get
+  tell $ S.singleton "Bloque Do"
   tell $ S.singleton $ show scopeFinal
+  tell $ S.singleton "\n\n"
   modify(modifyTable eraseLastScope)                                            -- Eliminar tabla agregada
 
 
@@ -176,4 +178,19 @@ withDo (Do decs is) = do
 
 
 
+
+
+
+
+-- Ejecutar una instruccion
+instruction :: Ins -> RetMonad ()
+instruction (IBlock b)  = block b
+instruction _           = return ()
+
+
+
+-- Ejecutar un bloque
+block :: Block -> RetMonad ()
+block (BDo doIns) = withDo doIns
+block _           = return () 
 

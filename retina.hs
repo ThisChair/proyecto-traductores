@@ -45,5 +45,5 @@ main = do
                 let parse = parseRet toks
                 let (s, w) = execRWS (start parse) "" initialState
                 F.mapM_ putStrLn $ w
-                putStrLn $ show s
+            --    putStrLn $ show s
                 putStrLn "Ok"

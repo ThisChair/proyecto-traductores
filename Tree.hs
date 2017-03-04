@@ -65,7 +65,7 @@ data Par      = Par   Token Token                 -- Token1: Tipo, Token2: ident
 data Ret      = Ret Exp
                 deriving (Show)
 data Ins      = IBlock Block    |
-                IReadId ReadId      |
+                IReadId ReadId  |
                 IWrite Write    |
                 IWriteL WriteL  |
                 IAssig Assig    |
