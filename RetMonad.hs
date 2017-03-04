@@ -156,16 +156,20 @@ dec (Dec2 (TNumber _) (TIdent _ id) exp) = do
   scope <- get
   case (M.member id (head $ sym scope)) of
     True  -> do return ()                                                         -- ERROR ya esta declarada la variable
-    False -> do let val = 0                                                       -- Calcular valor de la expresión y tipo
-                modify(insertSym id Number val False)                             -- verificar que coincida el tipo de declaracion 
+    False -> do let val = 0                                                       -- CALCULAR valor de la expresión y tipo
+                modify(insertSym id Number val False)                             -- VERIFICAR que coincida el tipo de declaracion 
 
 
 
--- Recorre un bloque do
--- withDo :: Do -> RetMonad ()
--- withDo decs is = do
---  scope 
- 
+-- Recorrer un bloque with do
+withDo :: Do -> RetMonad ()
+withDo (Do decs is) = do
+  modify(modifyTable addTable)
+  P.mapM_ dec decs
+-- P.mapM_  instruction is                                                      -- RECORRER INSTRUCCIONES
+  scopeFinal <- get
+  tell $ S.singleton $ show scopeFinal
+  modify(modifyTable eraseLastScope)                                            -- Eliminar tabla agregada
 
 
 
