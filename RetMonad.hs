@@ -9,8 +9,9 @@ import Data.Map as M
 import Data.Set as Set
 import Prelude as P
 
-type SymTable = [Map String Variable]         -- Tabla de simbolos, realmente es una lista de tablas de simbolos
-type SymFunc  = Map String Function           -- Tabla de funciones, eso si es una sola tabla :)
+type SymScope = Map String Variable             -- Tabla de simbolo de un alcance en especifico
+type SymTable = [SymScope]                      -- Tabla de simbolos, realmente es una lista de tablas de simbolos
+type SymFunc  = Map String Function             -- Tabla de funciones, eso si es una sola tabla :)
 
 
 -- Posibles tipos de retorno para las funciones, preguntar si una funcion puede
@@ -58,30 +59,52 @@ start (Init funs is) = do
 --  mapM_ instruction is
 
 
+-- Funcion para modificar la tabla de simbolos
+-- hacer modify (modifyTable f) donde f es una funcion
+-- que toma la tabla de simbolos actual y devuelve otra tabla de simbolos
+modifyTable f (Scope symTable x y z) = Scope (f symTable) x y z
+
+
+-- Usar cuando se tenga un nuevo alcance, agrega una nueva tabla de simbolos
+addTable :: SymTable -> SymTable
+addTable symTable = (M.empty:symTable)
+
+-- Moficar ultimo alcance: recibe una funcion que modifica el ultimo alcance
+modifyScope :: (SymScope -> SymScope) -> SymTable -> SymTable
+modifyScope f (s:xs) = (f s : xs)
+
+-- Elimina el ultimo alcance
+eraseLastScope :: SymTable -> SymTable
+eraseLastScope (x:xs) = xs
 
 function :: DefFunc -> RetMonad ()
 function (DFun identifier pars is) = do
-  scope <- get                                                        -- obtiene todo el estado del monad, lo guarda en scope
-  let tableFunc   = sym scope                                         -- obtiene la tabla de los simbolos de las funciones
-  let typeF       = Void                                              -- tipo de retorno de la funcion
-  let repeatPar   = (Set.size $ Set.fromList ids) != P.length ids     -- verifica si hay parametros con el mismo identificador
-  let isInTable   = True --M.member ID tableFunc
+  scope <- get                                                                  -- obtiene todo el estado del monad, lo guarda en scope
+  let tableFunc   = func scope                                                  -- obtiene la tabla de los simbolos de las funciones
+  let typeF       = Void                                                        -- tipo de retorno de la funcion
+  let repeatPar   = (Set.size $ Set.fromList ids) /= P.length ids               -- verifica si hay parametros con el mismo identificador
+  let isInTable   = M.member id tableFunc                                       -- verifica si el identificador esta en la tabla de simbolos
   case isInTable of
-    True -> do return ()-- errorRepeatFunc id
+    True -> do return ()                                                        -- errorRepeatFunc id
     False -> do return ()
   case repeatPar of
-    True -> do return () -- errorRepeatPar par
+    True -> do return ()                                                        -- errorRepeatPar par
     False -> do return ()
---  modify(insert id (Function t types))
---  modify(addSyms par)
+  modify(modifyFuncT $ M.insert id (Function typeF types))
+  modify(modifyTable  addTable)
+  modify(modifyTable $ modifyScope $ addSyms ids types)
 --  walkTree is
---  modify (eraseLastScope)
-  where (TIdent _ id) = identifier                                -- obtiene identificador de la funcion
-        getType (Par (TBoolean _) (TIdent _ id))  = Boolean       -- funcion para obtener el tipo de un parametro
-        getType (Par (TNumber _ ) (TIdent _ id))  = Number        -- funcion para obtener el tipo de un parametro
-        getId   (Par _ (TIdent _ id))             = id            -- funcion para obtener el tipo de un parametro
-        types = P.map getType pars                                -- obtener los tipos de los parametros
-        ids   = P.map getId   pars                                -- obtener los identificadores de los parametros 
+  modify(modifyTable eraseLastScope)
+  where (TIdent _ id) = identifier                                              -- obtiene identificador de la funcion
+        getType (Par (TBoolean _) (TIdent _ id))  = Boolean                     -- funcion para obtener el tipo de un parametro
+        getType (Par (TNumber _ ) (TIdent _ id))  = Number                      -- funcion para obtener el tipo de un parametro
+        getId   (Par _ (TIdent _ id))             = id                          -- funcion para obtener el tipo de un parametro
+        types                                     = P.map getType pars          -- obtener los tipos de los parametros
+        ids                                       = P.map getId   pars          -- obtener los identificadores de los parametros
+        modifyFuncT f (Scope x symFunc y z)       = Scope x (f symFunc) y z 
+        addSyms [] [] symT                        = symT
+        addSyms (x:xs) (y:ys) symT                = M.insert  x (Variable y 0 False) (addSyms xs ys symT)
+
 
 
 
@@ -93,14 +116,6 @@ function (DFun identifier pars is) = do
 
 main :: IO ()
 main = putStrLn "Ok"
-
-
-
-
-
-
-
-
 
 
 
