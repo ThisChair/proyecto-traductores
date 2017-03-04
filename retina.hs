@@ -13,6 +13,8 @@ import Tree
 import Control.Monad.RWS
 import Prelude as P
 import RetMonad
+import Data.Sequence as S
+import Data.Foldable as F
 
 
 -- Obtener archivo con el formato correcto, si no es el archivo correcto
@@ -20,8 +22,8 @@ import RetMonad
 filePath :: [String] -> String
 filePath [] = error "No se introdujo un archivo."
 filePath (x:y:_) = error "Introduzca un solo argumento."
-filePath (x:_) = case reverse x of ('n':'t':'r':'.':_) -> x
-                                   (y:_) -> error "Formato de archivo incorrecto."
+filePath (x:_) = case P.reverse x of  ('n':'t':'r':'.':_) -> x
+                                      (y:_) -> error "Formato de archivo incorrecto."
 
 -- Funcion principal
 -- Abre el archivo, procesa los tokens, si hay alguno incorrecto, muestra todos los
@@ -35,13 +37,13 @@ main = do
   handle <- openFile (filePath args) ReadMode  
   s <- hGetContents handle  
   let toks = alexScanTokens s
-  let inv =  filter undef toks
+  let inv =  P.filter undef toks
   let val = (inv == [])
   case val of
-      False -> do mapM_ putStrLn $ P.map show_token inv
+      False -> do P.mapM_ putStrLn $ P.map show_token inv
       True  -> do 
                 let parse = parseRet toks
                 let (s, w) = execRWS (start parse) "" initialState
-                putStrLn $ show w
+                F.mapM_ putStrLn $ w
                 putStrLn $ show s
                 putStrLn "Ok"
