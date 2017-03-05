@@ -13,10 +13,12 @@ import Data.Maybe
 
 --Maneja las expresiones
 express :: Exp -> RetMonad Variable
+
+
 --Sumas. Devuelve tipo Number y la suma de los valores.
-express (ESum input) = do
-  exp1 <- express(leftEx)
-  exp2 <- express(rightEx)
+express (ESum (Tree.Sum l r)) = do
+  exp1 <- express l
+  exp2 <- express r
   case t exp1 of
     Number -> do return()
     Boolean -> do return() -- Error ):
@@ -25,12 +27,12 @@ express (ESum input) = do
     Boolean -> do return() -- Error ):
   let val = num exp1 + num exp2
   return (Variable Number val False)
-  where (leftEx, rightEx) = getExp input
-        getExp (Tree.Sum l r) = (l, r)
+
+  
 --Restas. Devuelve tipo Number y la resta de los valores.
-express (EDif input) = do
-  exp1 <- express(leftEx)
-  exp2 <- express(rightEx)
+express (EDif (Dif l r)) = do
+  exp1 <- express l
+  exp2 <- express r
   case t exp1 of
     Number -> do return()
     Boolean -> do return() -- Error ):
@@ -39,12 +41,12 @@ express (EDif input) = do
     Boolean -> do return() -- Error ):
   let val = num exp1 - num exp2
   return (Variable Number val False)
-  where (leftEx, rightEx) = getExp input
-        getExp (Dif l r) = (l, r)
+
+
 --Multiplicaciones. Devuelve tipo Number y el producto de los valores.
-express (EMul input) = do
-  exp1 <- express(leftEx)
-  exp2 <- express(rightEx)
+express (EMul (Mul l r)) = do
+  exp1 <- express l
+  exp2 <- express r
   case t exp1 of
     Number -> do return()
     Boolean -> do return() -- Error ):
@@ -53,12 +55,12 @@ express (EMul input) = do
     Boolean -> do return() -- Error ):
   let val = num exp1 * num exp2
   return (Variable Number val False)
-  where (leftEx, rightEx) = getExp input
-        getExp (Mul l r) = (l, r)
+
+
 --Divisiones. Devuelve tipo Number y el cociente de los valores.
-express (EDiv input) = do
-  exp1 <- express(leftEx)
-  exp2 <- express(rightEx)
+express (EDiv (Div l r)) = do
+  exp1 <- express l
+  exp2 <- express r
   case t exp1 of
     Number -> do return()
     Boolean -> do return() -- Error ):
@@ -70,12 +72,12 @@ express (EDiv input) = do
     _ -> do return()
   let val = num exp1 / num exp2
   return (Variable Number val False)
-  where (leftEx, rightEx) = getExp input
-        getExp (Div l r) = (l, r)
+
+
 --Resto. Devuelve tipo Number y el resto de la división de los valores.
-express (EMod input) = do
-  exp1 <- express(leftEx)
-  exp2 <- express(rightEx)
+express (EMod (Mod l r)) = do
+  exp1 <- express l
+  exp2 <- express r
   case t exp1 of
     Number -> do return()
     Boolean -> do return() -- Error ):
@@ -97,12 +99,12 @@ express (EMod input) = do
     False -> return()
   let val = fromInteger (int1 `mod` int2)
   return (Variable Number val False)
-  where (leftEx, rightEx) = getExp input
-        getExp (Mod l r) = (l, r)
+
+
 --División entera. Devuelve tipo Number y la división entera de los valores.
-express (EDivI input) = do
-  exp1 <- express(leftEx)
-  exp2 <- express(rightEx)
+express (EDivI (DivI l r)) = do
+  exp1 <- express l
+  exp2 <- express r
   case t exp1 of
     Number -> do return()
     Boolean -> do return() -- Error ):
@@ -124,12 +126,12 @@ express (EDivI input) = do
     False -> return()
   let val = fromInteger (int1 `div` int2)
   return (Variable Number val False)
-  where (leftEx, rightEx) = getExp input
-        getExp (DivI l r) = (l, r)
+
+
 --Resto entero. Devuelve tipo Number y el resto de la división de los valores.
-express (EModI input) = do
-  exp1 <- express(leftEx)
-  exp2 <- express(rightEx)
+express (EModI (ModI l r)) = do
+  exp1 <- express l
+  exp2 <- express r
   case t exp1 of
     Number -> do return()
     Boolean -> do return() -- Error ):
@@ -151,8 +153,50 @@ express (EModI input) = do
     False -> return()
   let val = fromInteger (int1 `mod` int2)
   return (Variable Number val False)
-  where (leftEx, rightEx) = getExp input
-        getExp (ModI l r) = (l, r)
+
+
+--Disyunción. Devuelve tipo Boolean y la disyunción de los valores.
+express (EOr (Or l r)) = do
+  exp1 <- express l
+  exp2 <- express r
+  case t exp1 of
+    Number -> do return() -- Error ):
+    Boolean -> do return()
+  case t exp2 of
+    Number -> do return() -- Error ):
+    Boolean -> do return()
+  let val = bool exp1 || bool exp2
+  return (Variable Boolean 0 val)
+
+
+--Conjunción. Devuelve tipo Boolean y la conjunción de los valores.
+express (EAnd (And l r)) = do
+  exp1 <- express l
+  exp2 <- express r
+  case t exp1 of
+    Number -> do return() -- Error ):
+    Boolean -> do return()
+  case t exp2 of
+    Number -> do return() -- Error ):
+    Boolean -> do return()
+  let val = bool exp1 && bool exp2
+  return (Variable Boolean 0 val)
+
+
+--Mayor o igual que. Devuelve tipo Boolean y True si cumple la relación.
+express (EGeq (Geq l r)) = do
+  exp1 <- express l
+  exp2 <- express r
+  case t exp1 of
+    Number -> do return()
+    Boolean -> do return() -- Error ):
+  case t exp2 of
+    Number -> do return()
+    Boolean -> do return() -- Error ):
+  let val = num exp1 >= num exp2
+  return (Variable Boolean 0 val)
+
+
 --Identificadores. Devuelve el tipo y el valor.
 express (EToken (TIdent _ id)) = do
   scope <- get
