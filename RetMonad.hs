@@ -21,7 +21,7 @@ type SymFunc  = Map String Function             -- Tabla de funciones, eso si es
 -- Posibles tipos de retorno para las funciones, preguntar si una funcion puede
 -- devolver un string 
 data Type = Boolean | Number | Void
-            deriving (Show)
+            deriving (Show, Eq)
 
 -- Tipo para las variables guardadas en la tabla de simbolos
 -- preguntar si una variable puede contener un string

@@ -197,6 +197,96 @@ express (EGeq (Geq l r)) = do
   return (Variable Boolean 0 val)
 
 
+--Mayor que. Devuelve tipo Boolean y True si cumple la relación.
+express (EGr (Gr l r)) = do
+  exp1 <- express l
+  exp2 <- express r
+  case t exp1 of
+    Number -> do return()
+    Boolean -> do return() -- Error ):
+  case t exp2 of
+    Number -> do return()
+    Boolean -> do return() -- Error ):
+  let val = num exp1 > num exp2
+  return (Variable Boolean 0 val)
+
+
+--Menor o igual que. Devuelve tipo Boolean y True si cumple la relación.
+express (ELeq (Leq l r)) = do
+  exp1 <- express l
+  exp2 <- express r
+  case t exp1 of
+    Number -> do return()
+    Boolean -> do return() -- Error ):
+  case t exp2 of
+    Number -> do return()
+    Boolean -> do return() -- Error ):
+  let val = num exp1 <= num exp2
+  return (Variable Boolean 0 val)
+
+
+--Menor que. Devuelve tipo Boolean y True si cumple la relación.
+express (ELess (Less l r)) = do
+  exp1 <- express l
+  exp2 <- express r
+  case t exp1 of
+    Number -> do return()
+    Boolean -> do return() -- Error ):
+  case t exp2 of
+    Number -> do return()
+    Boolean -> do return() -- Error ):
+  let val = num exp1 < num exp2
+  return (Variable Boolean 0 val)
+
+
+--Distinto de. Devuelve tipo Boolean y True si cumple la relación.
+express (ENeq (Neq l r)) = do
+  exp1 <- express l
+  exp2 <- express r
+  let eqType = t exp1 == t exp2
+  case eqType of
+    True -> do return()
+    False -> do return() -- Error ):
+  let val = case t exp1 of 
+              Number -> num exp1 /= num exp2
+              Boolean -> bool exp1 /= bool exp2
+  return (Variable Boolean 0 val)
+
+
+--Distinto de. Devuelve tipo Boolean y True si cumple la relación.
+express (EEqual (Equal l r)) = do
+  exp1 <- express l
+  exp2 <- express r
+  let eqType = t exp1 == t exp2
+  case eqType of
+    True -> do return()
+    False -> do return() -- Error ):
+  let val = case t exp1 of 
+              Number -> num exp1 == num exp2
+              Boolean -> bool exp1 == bool exp2
+  return (Variable Boolean 0 val)
+
+
+--Negativo. Devuelve tipo Number y el valor.
+express (ENeg  e) = do
+  var <- express e
+  case t var of
+    Number -> do return()
+    Boolean -> do return() -- Error ):
+  let val = - num var
+  return (Variable Number val False)
+
+
+--Negación. Devuelve tipo Boolean y el valor.
+express (ENot  e) = do
+  var <- express e
+  case t var of
+    Number -> do return() -- Error ):
+    Boolean -> do return()
+  let val = not $ bool var
+  return (Variable Boolean 0 val)
+
+
 --Identificadores. Devuelve el tipo y el valor.
 express (EToken (TIdent _ id)) = do
   scope <- get
@@ -207,12 +297,18 @@ express (EToken (TIdent _ id)) = do
     Just _ -> do return () 
   let x = fromJust var 
   return x
+
+
 --Constante True. Devuelve tipo Boolean y True.
 express (EToken (TTrue _)) = do
   return (Variable Boolean 0 True)
+
+
 --Constante False. Devuelve tipo Boolean y False.
 express (EToken (TFalse _)) = do
   return (Variable Boolean 0 False)
+
+
 --Número. Devuelve tipo Number y el valor.
 express (EToken (TNum _ n)) = do
   return (Variable Boolean n False)
