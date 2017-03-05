@@ -22,8 +22,14 @@ start :: Init -> RetMonad ()
 start (Init funs is) = do
   tell $ S.singleton "Funciones iniciales:"
   mapM_ function funs
+  modify(changeName "_noFunction")                            -- Cambiar el nombre de la funcion
+  modify(changeTypeRet Void)                                  -- Cambiar el tipo de retorno
+  scopeFinal <- get                                           -- Obtener el alcance final
   tell $ S.singleton "program"
-  mapM_ instruction is
+  tell $ S.singleton $ show scopeFinal
+  tell $ S.singleton "\n\n"
+  modify(modifyCounter addCounter)                            -- Agregar nuevo contador
+  P.mapM_ instruction is
 
 
 -- Recorre las funciones iniciales
@@ -34,27 +40,33 @@ function input = do
   let repeatPar   = (Set.size $ Set.fromList ids) /= P.length ids               -- verifica si hay parametros con el mismo identificador
   let isInTable   = M.member id tableFunc                                       -- verifica si el identificador esta en la tabla de simbolos
   case isInTable of
-    True -> do return ()                                                        -- ERROR REPETIDO IDENTIFICADOR DE LA FUNCION
+    True  -> do return ()                                                       -- ERROR REPETIDO IDENTIFICADOR DE LA FUNCION
     False -> do return ()
   case repeatPar of
-    True -> do return ()                                                        -- ERROR, NOMBRES DE PARAMETROS REPETIDOS
+    True  -> do return ()                                                       -- ERROR, NOMBRES DE PARAMETROS REPETIDOS
     False -> do return ()
+  -- Si todo esta bien, entonces continuar:
+  modify(changeName id)                                                         -- Cambiar el nombre del identificador de la funcion
+  modify(changeTypeRet typeF)                                                   -- Cambiar el tipo de retorno de la funcion
+  modify(modifyCounter $ plusOne)                                               -- Sumar uno al ultimo contador
   modify(modifyFuncT $ M.insert id (Function typeF types))                      -- Agregar el identificador a la tabla de simbolos
   modify(modifyTable  addTable)                                                 -- Añadir una nueva tabla de simbolos
   modify(modifyTable $ modifyScope $ addSyms ids types)                         -- Agregar los parametros en la tabla de simbolos
   scopeFinal <- get
   tell $ S.singleton $ show scopeFinal
   tell $ S.singleton "\n\n"
-  P.mapM_ instruction is
-  modify(modifyTable eraseLastScope)
+  modify(modifyCounter addCounter)                                              -- Agregar un nuevo contador para el siguiente nivel del arbol
+  P.mapM_ instruction is                                                        -- Ejecutar las instrucciones de la funcion
+  modify(modifyTable eraseLastScope)                                            -- Eliminar ultimo alcance
+  modify(modifyCounter eraseCounter)                                            -- Eliminar ultimo contador
   where (identifier, pars, is, typeF)               = getAll input
         getAll (DFun   id' pars' is')               = (id', pars', is', Void)
         getAll (DFunR  id' pars' (TBoolean _) is')  = (id', pars', is', Boolean)
-        getAll (DFunR  id' pars' (TNumber  _) is')  = (id', pars', is', Number)      
-        (TIdent _ id)                               = identifier                  -- obtiene identificador de la funcion
+        getAll (DFunR  id' pars' (TNumber  _) is')  = (id', pars', is', Number)
+        (TIdent _ id)                               = identifier                  -- obtiene identificador de la funcion      
         getType (Par (TBoolean _) (TIdent _ id))    = Boolean                     -- funcion para obtener el tipo de un parametro
         getType (Par (TNumber _ ) (TIdent _ id))    = Number                      -- funcion para obtener el tipo de un parametro
-        getId   (Par _ (TIdent _ id))               = id                          -- funcion para obtener el tipo de un parametro
+        getId   (Par _ (TIdent _ id''))             = id''                        -- funcion para obtener el identificador de un parametro
         types                                       = P.map getType pars          -- obtener los tipos de los parametros
         ids                                         = P.map getId   pars          -- obtener los identificadores de los parametros
         modifyFuncT f (Scope x symFunc y z v w)     = Scope x (f symFunc) y z v w 
@@ -70,7 +82,7 @@ dec (Dec1 t ((TIdent _ id):ds))   = do
   scope <- get                                                                    -- obtener el alcance actual
   case (M.member id (head $ sym scope)) of                                        -- buscar el identificador en el alcance actual
     True  -> do return ()                                                         -- ERROR YA ESTA DECLARADA LA VARIABLE
-    False -> do modify(insertSym id (Variable (getType t) 0 False))                          -- agregar la nueva variable a la tabla de simbolos
+    False -> do modify(insertSym id (Variable (getType t) 0 False))               -- Agregar la nueva variable a la tabla de simbolos
                 dec (Dec1 t ds)                                                   -- recursion sobre las otras variables declaradas
   where getType (TBoolean _) = Boolean
         getType (TNumber  _) = Number
@@ -91,14 +103,19 @@ dec (Dec2 typeD (TIdent _ id) exp) = do                                         
 -- Recorrer un bloque with do
 withDo :: Do -> RetMonad ()
 withDo (Do decs is) = do
-  modify(modifyTable addTable)                                                 -- Crear un nuevo alcance
-  P.mapM_ dec decs
-  P.mapM_  instruction is                                                      -- RECORRER INSTRUCCIONES
+  modify(modifyHeight (+1))                                                       -- Sumar uno a la altura
+  modify(modifyCounter plusOne)                                                 -- Incrementar en uno el contador actual
+  modify(modifyTable addTable)                                                  -- Crear un nuevo alcance
+  P.mapM_ dec decs                                                              -- Verificar que las declaraciones sean correctas
   scopeFinal <- get
   tell $ S.singleton "Bloque Do"
   tell $ S.singleton $ show scopeFinal
   tell $ S.singleton "\n\n"
+  modify(modifyCounter addCounter)                                              -- Agregar nuevo contador
+  P.mapM_  instruction is                                                       -- RECORRER INSTRUCCIONES
   modify(modifyTable eraseLastScope)                                            -- Eliminar tabla agregada
+  modify(modifyCounter eraseCounter)                                            -- Eliminar ultimo contador
+  modify(modifyHeight (+(-1)))                                                  -- Restar uno a la altura
 
 
 -- Recorrer un bloque IF
@@ -141,13 +158,12 @@ rep (Repeat exp is) = do
   valExp <- express exp                                       -- Calcular la expresion numerica
   case (t valExp) of
     Boolean  -> do return ()                                  -- ERROR LA EXPRESION DEBERIA SER NUMERICA
-    Number    -> do P.mapM_ instruction is                    -- Recorrer las instrucciones
+    Number   -> do P.mapM_ instruction is                     -- Recorrer las instrucciones
 
 
 -- Recorrer un bloque for
 for :: For -> RetMonad ()
 for (For (TIdent _ id) exp1 exp2 is) = do
-  tell $ S.singleton "Bloque for"
   val1 <- express exp1                                        -- Calcular expresion inicial
   val2 <- express exp2                                        -- Calcular expresion final
   case (t val1) of                                            -- Verificar que la expresion inicial sea numerica 
@@ -156,10 +172,20 @@ for (For (TIdent _ id) exp1 exp2 is) = do
   case (t val2) of                                            -- Verificar que la expresion final sea numerica
     Number  -> do return ()                                 
     Boolean -> do return ()                                   -- ERROR LA EXPRESION DEBERIA SER NUMERICA
+  -- Si todo esta bien, entonces continuar
   modify(modifyTable addTable)                                -- agregar nuevo alcance
   modify(insertSym id val1)                                   -- agregar el contador a la tabla de simbolos
+  modify(modifyCounter plusOne)                               -- Incrementar en uno el contador actual
+  modify(modifyHeight (+1))                                   -- Sumar uno a la altura
+  scopeFinal <- get
+  tell $ S.singleton "Bloque For"
+  tell $ S.singleton $ show scopeFinal
+  tell $ S.singleton "\n\n"
+  modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is                                      -- Recorrer instrucciones
   modify(modifyTable eraseLastScope)                          -- Eliminar tabla agregada
+  modify(modifyCounter eraseCounter)                          -- Eliminar contador
+  modify(modifyHeight (+(-1)))                                -- restar uno a la altura
 
 
 -- Recorrer un bloque forBy
@@ -178,11 +204,21 @@ forBy (ForBy (TIdent _ id) exp1 exp2 exp3 is) = do
   case (t val3) of                                            -- Verificar que la expresion final sea numerica
     Number  -> do return ()                                 
     Boolean -> do return ()                                   -- ERROR LA EXPRESION DEBERIA SER NUMERICA
+  -- Si todo esta bien, entonces continuar
   modify(modifyTable addTable)                                -- agregar nuevo alcance
   modify(insertSym id val1)                                   -- agregar el contador a la tabla de simbolos
+  modify(modifyCounter plusOne)                               -- Incrementar en uno el contador actual
+  modify(modifyHeight (+1))                                   -- Sumar uno a la altura
+  scopeFinal <- get                                           -- Obtener el alcance final
+  tell $ S.singleton "Bloque For"
+  tell $ S.singleton $ show scopeFinal
+  tell $ S.singleton "\n\n"
+  modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is                                      -- Recorrer instrucciones
   modify(modifyTable eraseLastScope)                          -- Eliminar tabla agregada
-
+  modify(modifyCounter eraseCounter)                          -- Eliminar contador
+  modify(modifyHeight (+(-1)))                                -- restar uno a la altura
+  
 -- Ejecutar un bloque
 block :: Block -> RetMonad ()
 block (BDo      ins)  = withDo  ins
@@ -228,6 +264,7 @@ writeLPr (WriteL ps) = do
 -- instruccion de asignacion
 assig :: Assig -> RetMonad ()
 assig (Assig (TIdent _ id) exp) = do
+  tell $ S.singleton "instruccion de asignacion"
   scope   <- get
   valExp  <- express exp                                      -- Calcular valor de la expresion
   case (findSym (sym scope) id) of                            -- Verificar que la variable este declarada
@@ -238,6 +275,7 @@ assig (Assig (TIdent _ id) exp) = do
 -- instrucion de retorno
 returnIns :: Ret -> RetMonad ()
 returnIns (Ret exp) = do
+  tell $ S.singleton "instruccion de retorno"
   scope <- get
   let typeReturn = typeRet scope
   val <- express exp                                            -- Calcular expresion
@@ -248,28 +286,7 @@ returnIns (Ret exp) = do
     True  -> do return ()                                       -- ERROR, SE ESPERA UNA EXPRESION DEL TIPO 'typeRet'
     False -> do return ()
 
--- Funcion recursiva que verifica si los parametros coinciden en una
--- llamada a una funcion
-checkPars :: [Type] -> [Exp] -> RetMonad ()
-checkPars [] []         = do return ()                                  -- Termina la verificacion con exito
-checkPars [] (_:_)      = do return ()                                  -- ERROR, LLAMADA A FUNCION CON CANTIDAD DE PARAMETROS INCORRECTOS
-checkPars (_:_) []      = do return ()                                  -- ERROR, LLAMADA A FUNCION CON CANTIDAD DE PARAMETROS INCORRECTOS    
-checkPars (ty:ts) (e:es) = do
-  val <- express e                                                      -- calcular valor de la siguiente expresion
-  case (ty /= (t val))  of                                              -- Verificar que coincida el tipo del siguiente parametro
-    True  -> do return ()                                               -- ERROR NO COINCIDE TIPO DE PARAMETRO
-    False -> checkPars ts es                                            -- continuar verificando
 
--- Instruccion, llamada a una funcion
-funcCall :: FCall -> RetMonad Variable
-funcCall (FCall (TIdent _ id) exps) = do
-  scope <- get
-  let funcId = findFunc (func scope) id
-  case funcId of
-    Nothing   -> do return nullVariable                             -- ERROR, FUNCION NO DECLARADA
-    Just val  -> do                                                 -- La funcion si esta declarada
-      checkPars (parameters val) (exps)                             -- Verificar que los parametros coincidan en numero y tipo
-      return (Variable (ret val) 0 False)                           -- Retorna el valor de la funcion
 
 -- Ejecutar una instruccion
 -- Falta llamada a funcion e instruccion de retorno
@@ -280,6 +297,6 @@ instruction (IWrite   ins)  = writePr   ins
 instruction (IWriteL  ins)  = writeLPr  ins
 instruction (IAssig   ins)  = assig     ins
 instruction (IRet     ins)  = returnIns ins
-instruction (IFCall   ins)  = do  let f = funcCall  ins           -- ASEGURAR QUE SERA LLAMADA LA FUNCION
+instruction (IFCall   ins)  = do  let f = funcCall  ins         -- ASEGURAR QUE SERA LLAMADA LA FUNCION
                                   return ()
 instruction IEmpty          = do return ()

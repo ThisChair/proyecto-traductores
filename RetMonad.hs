@@ -53,7 +53,7 @@ initialState =  Scope
                       []
                       M.empty
                       0
-                      []
+                      [0]
                       Void
                       ""
 
@@ -97,8 +97,25 @@ modifyHeight f (Scope x y h z v w) = Scope x y (f h) z v w
 
 -- Modificar contador de alcances: recibe una funcion que sera aplicada al contador
 -- hacer modify(modifyCount f) donde f es la funcionn que modificara el contador
-modifyCount :: ([Int] -> [Int]) -> Scope -> Scope
-modifyCount f (Scope x y z c v w) = Scope x y z (f c) v w
+modifyCounter :: ([Int] -> [Int]) -> Scope -> Scope
+modifyCounter f (Scope x y z c v w) = Scope x y z (f c) v w
+
+-- Aumentar contador en uno, cuando se encuentra un alcance se debe aumentar en uno, el
+-- ultimo nivel del contador. No puede ser llamado cuando la lista esta vacia
+plusOne :: [Int] -> [Int]
+plusOne (x:xs) = (x+1):xs
+
+
+-- Agregar nuevo contador, cuando se entra en un nuevo alcance se crea un nuevo nivel
+-- en el arbol, por lo que se debe agregar un nuevo valor en la lista contador, que se
+-- inicializara en 0
+addCounter :: [Int] -> [Int]
+addCounter l = (0 : l)
+
+-- Eliminar ultimo contador, cuando se termina un alcance, no se debe llamar cuando la lista
+-- esta vacia
+eraseCounter :: [Int] -> [Int]
+eraseCounter (x:xs) = xs
 
 -- Elimina el ultimo alcance
 eraseLastScope :: SymTable -> SymTable

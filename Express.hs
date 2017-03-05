@@ -1,4 +1,4 @@
-module Main(main) where
+module Express where
 
 import Control.Monad.RWS
 import Tree
@@ -311,8 +311,32 @@ express (EToken (TFalse _)) = do
 
 --Número. Devuelve tipo Number y el valor.
 express (EToken (TNum _ n)) = do
-  return (Variable Boolean n False)
+  return (Variable Number n False)
 
 
-main :: IO ()
-main = putStrLn "Ok"
+-- Llamada a funcion
+express (EFCall (FCall t exp)) = do funcCall (FCall t exp)
+
+
+-- Funcion recursiva que verifica si los parametros coinciden en una
+-- llamada a una funcion
+checkPars :: [Type] -> [Exp] -> RetMonad ()
+checkPars [] []         = do return ()                                  -- Termina la verificacion con exito
+checkPars [] (_:_)      = do return ()                                  -- ERROR, LLAMADA A FUNCION CON CANTIDAD DE PARAMETROS INCORRECTOS
+checkPars (_:_) []      = do return ()                                  -- ERROR, LLAMADA A FUNCION CON CANTIDAD DE PARAMETROS INCORRECTOS    
+checkPars (ty:ts) (e:es) = do
+  val <- express e                                                      -- calcular valor de la siguiente expresion
+  case (ty /= (t val))  of                                              -- Verificar que coincida el tipo del siguiente parametro
+    True  -> do return ()                                               -- ERROR NO COINCIDE TIPO DE PARAMETRO
+    False -> checkPars ts es                                            -- continuar verificando
+
+-- Instruccion, llamada a una funcion
+funcCall :: FCall -> RetMonad Variable
+funcCall (FCall (TIdent _ id) exps) = do
+  scope <- get
+  let funcId = findFunc (func scope) id
+  case funcId of
+    Nothing   -> do return nullVariable                             -- ERROR, FUNCION NO DECLARADA
+    Just val  -> do                                                 -- La funcion si esta declarada
+      checkPars (parameters val) (exps)                             -- Verificar que los parametros coincidan en numero y tipo
+      return (Variable (ret val) 0 False)                           -- Retorna el valor de la funcion
