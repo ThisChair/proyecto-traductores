@@ -85,18 +85,74 @@ express (EMod input) = do
   case num exp2 of
     0 -> do return() -- Error ):
     _ -> do return()
-  let int1 = round (num exp1)
-  let int2 = round (num exp2)
-  case (num exp1 /= int1) of
+  let dob1 = num exp1
+  let dob2 = num exp2
+  let int1 = round dob1
+  let int2 = round dob2
+  case (dob1 /= fromInteger int1) of
     True -> return() -- Error ):
     False -> return()
-  case (num exp2 /= int2) of
+  case (dob2 /= fromInteger int2) of
     True -> return() -- Error ):
     False -> return()
-  let val = int1 `mod` int2
+  let val = fromInteger (int1 `mod` int2)
   return (Variable Number val False)
   where (leftEx, rightEx) = getExp input
         getExp (Mod l r) = (l, r)
+--División entera. Devuelve tipo Number y la división entera de los valores.
+express (EDivI input) = do
+  exp1 <- express(leftEx)
+  exp2 <- express(rightEx)
+  case t exp1 of
+    Number -> do return()
+    Boolean -> do return() -- Error ):
+  case t exp2 of
+    Number -> do return()
+    Boolean -> do return() -- Error ):
+  case num exp2 of
+    0 -> do return() -- Error ):
+    _ -> do return()
+  let dob1 = num exp1
+  let dob2 = num exp2
+  let int1 = round dob1
+  let int2 = round dob2
+  case (dob1 /= fromInteger int1) of
+    True -> return() -- Error ):
+    False -> return()
+  case (dob2 /= fromInteger int2) of
+    True -> return() -- Error ):
+    False -> return()
+  let val = fromInteger (int1 `div` int2)
+  return (Variable Number val False)
+  where (leftEx, rightEx) = getExp input
+        getExp (DivI l r) = (l, r)
+--Resto entero. Devuelve tipo Number y el resto de la división de los valores.
+express (EModI input) = do
+  exp1 <- express(leftEx)
+  exp2 <- express(rightEx)
+  case t exp1 of
+    Number -> do return()
+    Boolean -> do return() -- Error ):
+  case t exp2 of
+    Number -> do return()
+    Boolean -> do return() -- Error ):
+  case num exp2 of
+    0 -> do return() -- Error ):
+    _ -> do return()
+  let dob1 = num exp1
+  let dob2 = num exp2
+  let int1 = round dob1
+  let int2 = round dob2
+  case (dob1 /= fromInteger int1) of
+    True -> return() -- Error ):
+    False -> return()
+  case (dob2 /= fromInteger int2) of
+    True -> return() -- Error ):
+    False -> return()
+  let val = fromInteger (int1 `mod` int2)
+  return (Variable Number val False)
+  where (leftEx, rightEx) = getExp input
+        getExp (ModI l r) = (l, r)
 --Identificadores. Devuelve el tipo y el valor.
 express (EToken (TIdent _ id)) = do
   scope <- get
