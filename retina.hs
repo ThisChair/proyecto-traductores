@@ -13,6 +13,7 @@ import Tree
 import Control.Monad.RWS
 import Prelude as P
 import RetMonad
+import Funciones
 import Data.Sequence as S
 import Data.Foldable as F
 
@@ -46,4 +47,6 @@ main = do
                 let (s, w) = execRWS (start parse) "" initialState
                 F.mapM_ putStrLn $ w
             --    putStrLn $ show s
-                putStrLn "Ok"
+                putStrLn "Ok\n\n\n"
+           --     let (s2, w2) = execRWS (express (EToken (TIdent (AlexPn 0 0 0) "hola"))) "" initialState
+           --     F.mapM_ putStrLn $ w2
