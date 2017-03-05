@@ -85,16 +85,19 @@ findSym (ss:xs) id  = if (isNothing var) then (findSym xs id) else var
   where var = M.lookup id ss
 
 
+-- Modificar el valor de una variable en la tabla de simbolos
+modifySym :: String -> Variable -> SymTable -> SymTable
+modifySym id var (ss:xs) = if (isNothing var') then (ss : (modifySym id var xs)) else ((M.insert id var ss) : xs)
+    where var' = M.lookup id ss
+
 -- agregar un nuevo simbolo en el ultimo alcance de la tabla de simbolos
-insertSym :: String -> Type -> Double -> Bool -> Scope -> Scope
-insertSym id typeD valNum valBool = modifyTable (modifyScope (M.insert id (Variable typeD valNum valBool)))
+insertSym :: String -> Variable -> Scope -> Scope
+insertSym id var = modifyTable (modifyScope (M.insert id var))
 
 -- Verifica si un identificador esta en la tabla de funciones
 -- si encuentra el identificador retorna su informacion
 findFunc :: SymFunc -> String -> Maybe Function
 findFunc symFun id = M.lookup id symFun 
-
-
 
 
 
