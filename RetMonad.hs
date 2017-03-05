@@ -1,6 +1,5 @@
 -- Recordar que falta el return
 -- modificar estructura scope :(
-
 module RetMonad where
 import Control.Monad.RWS
 import Tree
@@ -41,7 +40,7 @@ data Function = Function { ret :: Type              -- tipo de valor de retorno 
 data Scope = Scope  { sym     :: SymTable           -- tabla de simbolos
                     , func    :: SymFunc            -- tabla de las funciones
                     , height  :: Int                -- altura del arbol
-                    , count   :: Int                -- contador que enumera los alcances
+                    , count   :: [Int]              -- contador que enumera los alcances
                     , typeRet :: Type               -- tipo de retorno
                     , funName :: String             -- nombre de la funcion
                     }
@@ -54,13 +53,13 @@ initialState =  Scope
                       []
                       M.empty
                       0
-                      0
+                      []
                       Void
                       ""
 
 
 
------------------------------  FUNCIONES GLOBALES PARA TRABAJAR EL MONAD ---------------------------------
+-----------------------------  FUNCIONES GLOBALES PARA MODIFICAR Scope ---------------------------------
 
 -- Funcion para modificar la tabla de simbolos
 -- hacer modify (modifyTable f) donde f es una funcion
@@ -77,6 +76,29 @@ addTable symTable = (M.empty:symTable)
 -- hacer modify (modifyTable $ modifyScope f)
 modifyScope :: (SymScope -> SymScope) -> SymTable -> SymTable
 modifyScope f (s:xs) = (f s : xs)
+
+
+
+-- Cambiar el nombre de la funcion de scope
+-- Recibe un string que sera el nuevo nombre de la funcion
+changeName :: String -> Scope -> Scope
+changeName s (Scope x y z v w s') = Scope x y z v w s
+
+-- Cambiar el tipo de retorno de la funcion
+-- Recibe el nuevo tipo de retorno
+changeTypeRet :: Type -> Scope -> Scope
+changeTypeRet tr (Scope x y z v tr' w ) = Scope x y z v tr w
+
+
+-- Modificar altura: recibe una funcion que sera aplicada a la altura
+-- hacer modify(modifyHeight f) donde f es la funcion que modificara la altura
+modifyHeight :: (Int -> Int) -> Scope -> Scope
+modifyHeight f (Scope x y h z v w) = Scope x y (f h) z v w
+
+-- Modificar contador de alcances: recibe una funcion que sera aplicada al contador
+-- hacer modify(modifyCount f) donde f es la funcionn que modificara el contador
+modifyCount :: ([Int] -> [Int]) -> Scope -> Scope
+modifyCount f (Scope x y z c v w) = Scope x y z (f c) v w
 
 -- Elimina el ultimo alcance
 eraseLastScope :: SymTable -> SymTable
