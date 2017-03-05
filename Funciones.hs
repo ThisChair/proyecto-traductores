@@ -69,7 +69,7 @@ function input = do
         getId   (Par _ (TIdent _ id''))             = id''                        -- funcion para obtener el identificador de un parametro
         types                                       = P.map getType pars          -- obtener los tipos de los parametros
         ids                                         = P.map getId   pars          -- obtener los identificadores de los parametros
-        modifyFuncT f (Scope x symFunc y z v w)     = Scope x (f symFunc) y z v w 
+        modifyFuncT f (Scope x symFunc y z v w ts)  = Scope x (f symFunc) y z v w ts
         addSyms [] [] symT                          = symT
         addSyms (x:xs) (y:ys) symT                  = M.insert  x (Variable y 0 False) (addSyms xs ys symT)
 
