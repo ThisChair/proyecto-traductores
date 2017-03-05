@@ -69,7 +69,7 @@ data Ins      = IBlock Block    |
                 IWrite Write    |
                 IWriteL WriteL  |
                 IAssig Assig    |
-                IFcall FCall    |
+                IFCall FCall    |
                 IRet Ret        |
                 IEmpty 
                 deriving (Show)

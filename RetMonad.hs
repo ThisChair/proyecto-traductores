@@ -41,7 +41,10 @@ data Function = Function { ret :: Type              -- tipo de valor de retorno 
 data Scope = Scope  { sym     :: SymTable           -- tabla de simbolos
                     , func    :: SymFunc            -- tabla de las funciones
                     , height  :: Int                -- altura del arbol
-                    , count   :: Int }              -- contador que enumera los alcances
+                    , count   :: Int                -- contador que enumera los alcances
+                    , typeRet :: Type               -- tipo de retorno
+                    , funName :: String             -- nombre de la funcion
+                    }
                     deriving (Show)
                 
 type RetMonad = RWS String (S.Seq(String)) Scope
@@ -52,6 +55,8 @@ initialState =  Scope
                       M.empty
                       0
                       0
+                      Void
+                      ""
 
 
 
@@ -61,7 +66,7 @@ initialState =  Scope
 -- hacer modify (modifyTable f) donde f es una funcion
 -- que toma la tabla de simbolos actual y devuelve otra tabla de simbolos
 modifyTable :: (SymTable -> SymTable) -> Scope -> Scope
-modifyTable f (Scope symTable x y z)    = Scope (f symTable) x y z
+modifyTable f (Scope symTable x y z v w)    = Scope (f symTable) x y z v w
 
 
 -- Usar cuando se tenga un nuevo alcance, agrega una nueva tabla de simbolos
@@ -100,4 +105,6 @@ findFunc :: SymFunc -> String -> Maybe Function
 findFunc symFun id = M.lookup id symFun 
 
 
-
+-- Variable nula
+nullVariable :: Variable
+nullVariable = Variable Void 0 False

@@ -160,7 +160,7 @@ Ins : {- empty -}                   {IEmpty}
     | Write                         {IWrite   $1}
     | WriteL                        {IWriteL  $1}
     | Assig                         {IAssig   $1}
-    | FCall                         {IFcall   $1}
+    | FCall                         {IFCall   $1}
     | Ret                           {IRet     $1}
 
 

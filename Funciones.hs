@@ -57,7 +57,7 @@ function input = do
         getId   (Par _ (TIdent _ id))               = id                          -- funcion para obtener el tipo de un parametro
         types                                       = P.map getType pars          -- obtener los tipos de los parametros
         ids                                         = P.map getId   pars          -- obtener los identificadores de los parametros
-        modifyFuncT f (Scope x symFunc y z)         = Scope x (f symFunc) y z 
+        modifyFuncT f (Scope x symFunc y z v w)     = Scope x (f symFunc) y z v w 
         addSyms [] [] symT                          = symT
         addSyms (x:xs) (y:ys) symT                  = M.insert  x (Variable y 0 False) (addSyms xs ys symT)
 
@@ -234,7 +234,52 @@ assig (Assig (TIdent _ id) exp) = do
     Nothing   -> do return ()                                 -- ERROR VARIABLE NO DECLARADA
     Just var  -> do modify(modifyTable $ modifySym id var)    -- modificar la variable
 
+
+-- instrucion de retorno
+returnIns :: Ret -> RetMonad ()
+returnIns (Ret exp) = do
+  scope <- get
+  let typeReturn = typeRet scope
+  val <- express exp                                            -- Calcular expresion
+  case typeReturn of                                            -- Verificar que se este en una funcion que devuelva un valor
+    Void  -> do return ()                                       -- ERROR, NO SE ENCUENTRA EN UN ALCANCE CON VALOR DE RETORNO
+    _     -> do return ()
+  case (typeReturn /= (t val)) of
+    True  -> do return ()                                       -- ERROR, SE ESPERA UNA EXPRESION DEL TIPO 'typeRet'
+    False -> do return ()
+
+-- Funcion recursiva que verifica si los parametros coinciden en una
+-- llamada a una funcion
+checkPars :: [Type] -> [Exp] -> RetMonad ()
+checkPars [] []         = do return ()                                  -- Termina la verificacion con exito
+checkPars [] (_:_)      = do return ()                                  -- ERROR, LLAMADA A FUNCION CON CANTIDAD DE PARAMETROS INCORRECTOS
+checkPars (_:_) []      = do return ()                                  -- ERROR, LLAMADA A FUNCION CON CANTIDAD DE PARAMETROS INCORRECTOS    
+checkPars (ty:ts) (e:es) = do
+  val <- express e                                                      -- calcular valor de la siguiente expresion
+  case (ty /= (t val))  of                                              -- Verificar que coincida el tipo del siguiente parametro
+    True  -> do return ()                                               -- ERROR NO COINCIDE TIPO DE PARAMETRO
+    False -> checkPars ts es                                            -- continuar verificando
+
+-- Instruccion, llamada a una funcion
+funcCall :: FCall -> RetMonad Variable
+funcCall (FCall (TIdent _ id) exps) = do
+  scope <- get
+  let funcId = findFunc (func scope) id
+  case funcId of
+    Nothing   -> do return nullVariable                             -- ERROR, FUNCION NO DECLARADA
+    Just val  -> do                                                 -- La funcion si esta declarada
+      checkPars (parameters val) (exps)                             -- Verificar que los parametros coincidan en numero y tipo
+      return (Variable (ret val) 0 False)                           -- Retorna el valor de la funcion
+
 -- Ejecutar una instruccion
+-- Falta llamada a funcion e instruccion de retorno
 instruction :: Ins -> RetMonad ()
-instruction (IBlock b)  = block b
-instruction _           = return ()
+instruction (IBlock   ins)  = block     ins
+instruction (IReadId  ins)  = readId    ins
+instruction (IWrite   ins)  = writePr   ins
+instruction (IWriteL  ins)  = writeLPr  ins
+instruction (IAssig   ins)  = assig     ins
+instruction (IRet     ins)  = returnIns ins
+instruction (IFCall   ins)  = do  let f = funcCall  ins           -- ASEGURAR QUE SERA LLAMADA LA FUNCION
+                                  return ()
+instruction IEmpty          = do return ()
