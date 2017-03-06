@@ -27,9 +27,9 @@ start (Init funs is) = do
   modify(changeTypeRet Void)                                  -- Cambiar el tipo de retorno
   modify(modifyCounter plusOne)                               -- Agregar 1 al contador
   modify(changeTypeScope IsProgram)                           -- Cambiar el tipo de alcance
+  modify(modifyTable  addTable)                               -- Añadir una nueva tabla de simbolos
   scopeFinal <- get                                           -- Obtener el alcance final
---  tell $ S.singleton "program"
-  tell $ S.singleton $ show scopeFinal
+  tell $ S.singleton $ scopeFinal
   modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is
 
@@ -56,12 +56,12 @@ function input = do
   modify(modifyTable  addTable)                                                 -- Añadir una nueva tabla de simbolos
   modify(modifyTable $ modifyScope $ addSyms ids types)                         -- Agregar los parametros en la tabla de simbolos
   scopeFinal <- get
-  tell $ S.singleton $ show scopeFinal
+  tell $ S.singleton $ scopeFinal
   modify(modifyCounter addCounter)                                              -- Agregar un nuevo contador para el siguiente nivel del arbol
   P.mapM_ instruction is                                                        -- Ejecutar las instrucciones de la funcion
   modify(modifyTable eraseLastScope)                                            -- Eliminar ultimo alcance
   modify(modifyCounter eraseCounter)                                            -- Eliminar ultimo contador
-  tell $ S.singleton $ "\n"
+--  tell $ S.singleton $ "\n"
   where (identifier, pars, is, typeF)               = getAll input
         getAll (DFun   id' pars' is')               = (id', pars', is', Void)
         getAll (DFunR  id' pars' (TBoolean _) is')  = (id', pars', is', Boolean)
@@ -113,7 +113,7 @@ withDo (Do decs is) = do
   P.mapM_ dec decs                                                              -- Verificar que las declaraciones sean correctas
   scopeFinal <- get
 --  tell $ S.singleton "Bloque Do"
-  tell $ S.singleton $ show scopeFinal
+  tell $ S.singleton $ scopeFinal
   modify(modifyCounter addCounter)                                              -- Agregar nuevo contador
   P.mapM_  instruction is                                                       -- RECORRER INSTRUCCIONES
   modify(modifyTable eraseLastScope)                                            -- Eliminar tabla agregada
@@ -138,9 +138,7 @@ ifElse (IfElse exp is1 is2) = do
   valExp <- express exp                                       -- Calcular la expresion condicional
   case (t valExp) of
     Number  -> do return ()                                   -- ERROR LA EXPRESION DEBERIA SER BOOLEANA
-    Boolean -> do tell $ S.singleton "Cuando es true"
-                  P.mapM_ instruction is1                     -- Recorrer las instrucciones
-                  tell $ S.singleton "Cuando es false"
+    Boolean -> do P.mapM_ instruction is1                     -- Recorrer las instrucciones
                   P.mapM_ instruction is2                     -- Recorrer las instrucciones
   
 -- Recorrer un bloque while
@@ -183,7 +181,7 @@ for (For (TIdent _ id) exp1 exp2 is) = do
   modify(changeTypeScope IsFor)                               -- Cambiar el tipo de alcance
   scopeFinal <- get
 --  tell $ S.singleton "Bloque For"
-  tell $ S.singleton $ show scopeFinal
+  tell $ S.singleton $ scopeFinal
   modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is                                      -- Recorrer instrucciones
   modify(modifyTable eraseLastScope)                          -- Eliminar tabla agregada
@@ -215,7 +213,7 @@ forBy (ForBy (TIdent _ id) exp1 exp2 exp3 is) = do
   modify(changeTypeScope IsForBy)                             -- Cambiar el tipo de alcance
   scopeFinal <- get                                           -- Obtener el alcance final
 --  tell $ S.singleton "Bloque For"
-  tell $ S.singleton $ show scopeFinal
+  tell $ S.singleton $ scopeFinal
   modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is                                      -- Recorrer instrucciones
   modify(modifyTable eraseLastScope)                          -- Eliminar tabla agregada

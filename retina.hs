@@ -43,10 +43,8 @@ main = do
   case val of
       False -> do P.mapM_ putStrLn $ P.map show_token inv
       True  -> do 
-                let parse = parseRet toks
-                let (s, w) = execRWS (start parse) "" initialState
-                F.mapM_ putStr $ w
-            --    putStrLn $ show s
-                putStrLn "Ok\n"
-           --     let (s2, w2) = execRWS (express (EToken (TIdent (AlexPn 0 0 0) "hola"))) "" initialState
-           --     F.mapM_ putStrLn $ w2
+                let parse   = parseRet toks
+                let (s, w)  = execRWS (start parse) "" initialState
+                let out     = F.toList w 
+                P.mapM_ putStr $ map show out
+      

@@ -29,7 +29,6 @@ data TypeScope = IsFun | IsWithDo | IsFor | IsForBy | IsProgram deriving (Show)
 data Variable = Variable { t :: Type
                          , num  :: Double
                          , bool :: Bool }
-                         deriving (Show)
 
 
 -- Tipo de datos para almacenar las funciones
@@ -49,7 +48,7 @@ data Scope = Scope  { sym     :: SymTable           -- tabla de simbolos
                     }
                     -- deriving (Show)
                 
-type RetMonad = RWS String (S.Seq(String)) Scope
+type RetMonad = RWS String (S.Seq(Scope)) Scope
 
 -- Estado inicial del Monad
 initialState =  Scope
