@@ -13,10 +13,32 @@ import Data.Maybe
 
 --Maneja las expresiones
 express :: Exp -> RetMonad Variable
+express (ESum (Tree.Sum l r))  = addi (ESum (Tree.Sum l r))
+express (EDif (Dif l r))       = subs (EDif (Dif l r))
+express (EMul (Mul l r))       = multi (EMul (Mul l r))
+express (EDiv (Div l r))       = divi (EDiv (Div l r))
+express (EMod (Mod l r))       = rest (EMod (Mod l r))
+express (EDivI (DivI l r))     = diviI (EDivI (DivI l r))
+express (EModI (ModI l r))     = restI (EModI (ModI l r))
+express (EOr (Or l r))         = disy (EOr (Or l r))
+express (EAnd (And l r))       = conj (EAnd (And l r))
+express (EGeq (Geq l r))       = greatEq (EGeq (Geq l r))
+express (EGr (Gr l r))         = greater (EGr (Gr l r))
+express (ELeq (Leq l r))       = lessEq (ELeq (Leq l r))
+express (ELess (Less l r))     = lesser (ELess (Less l r))
+express (ENeq (Neq l r))       = notEq (ENeq (Neq l r))
+express (EEqual (Equal l r))   = equal (EEqual (Equal l r))
+express (ENeg  e)              = negat (ENeg  e)
+express (ENot  e)              = nega (ENot  e)
+express (EToken (TIdent p id)) = identifier (EToken (TIdent p id))
+express (EToken (TTrue p))     = constTrue (EToken (TTrue p))
+express (EToken (TFalse p))    = constFalse (EToken (TFalse p))
+express (EToken (TNum p n))    = numb (EToken (TNum p n))
+express (EFCall (FCall t exp)) = fCall (EFCall (FCall t exp))
 
 
 --Sumas. Devuelve tipo Number y la suma de los valores.
-express (ESum (Tree.Sum l r)) = do
+addi (ESum (Tree.Sum l r)) = do
   exp1 <- express l
   exp2 <- express r
   case t exp1 of
@@ -30,7 +52,7 @@ express (ESum (Tree.Sum l r)) = do
 
   
 --Restas. Devuelve tipo Number y la resta de los valores.
-express (EDif (Dif l r)) = do
+subs (EDif (Dif l r)) = do
   exp1 <- express l
   exp2 <- express r
   case t exp1 of
@@ -44,7 +66,7 @@ express (EDif (Dif l r)) = do
 
 
 --Multiplicaciones. Devuelve tipo Number y el producto de los valores.
-express (EMul (Mul l r)) = do
+multi (EMul (Mul l r)) = do
   exp1 <- express l
   exp2 <- express r
   case t exp1 of
@@ -58,7 +80,7 @@ express (EMul (Mul l r)) = do
 
 
 --Divisiones. Devuelve tipo Number y el cociente de los valores.
-express (EDiv (Div l r)) = do
+divi (EDiv (Div l r)) = do
   exp1 <- express l
   exp2 <- express r
   case t exp1 of
@@ -75,7 +97,7 @@ express (EDiv (Div l r)) = do
 
 
 --Resto. Devuelve tipo Number y el resto de la división de los valores.
-express (EMod (Mod l r)) = do
+rest (EMod (Mod l r)) = do
   exp1 <- express l
   exp2 <- express r
   case t exp1 of
@@ -102,7 +124,7 @@ express (EMod (Mod l r)) = do
 
 
 --División entera. Devuelve tipo Number y la división entera de los valores.
-express (EDivI (DivI l r)) = do
+diviI (EDivI (DivI l r)) = do
   exp1 <- express l
   exp2 <- express r
   case t exp1 of
@@ -129,7 +151,7 @@ express (EDivI (DivI l r)) = do
 
 
 --Resto entero. Devuelve tipo Number y el resto de la división de los valores.
-express (EModI (ModI l r)) = do
+restI (EModI (ModI l r)) = do
   exp1 <- express l
   exp2 <- express r
   case t exp1 of
@@ -156,7 +178,7 @@ express (EModI (ModI l r)) = do
 
 
 --Disyunción. Devuelve tipo Boolean y la disyunción de los valores.
-express (EOr (Or l r)) = do
+disy (EOr (Or l r)) = do
   exp1 <- express l
   exp2 <- express r
   case t exp1 of
@@ -170,7 +192,7 @@ express (EOr (Or l r)) = do
 
 
 --Conjunción. Devuelve tipo Boolean y la conjunción de los valores.
-express (EAnd (And l r)) = do
+conj (EAnd (And l r)) = do
   exp1 <- express l
   exp2 <- express r
   case t exp1 of
@@ -184,7 +206,7 @@ express (EAnd (And l r)) = do
 
 
 --Mayor o igual que. Devuelve tipo Boolean y True si cumple la relación.
-express (EGeq (Geq l r)) = do
+greatEq (EGeq (Geq l r)) = do
   exp1 <- express l
   exp2 <- express r
   case t exp1 of
@@ -198,7 +220,7 @@ express (EGeq (Geq l r)) = do
 
 
 --Mayor que. Devuelve tipo Boolean y True si cumple la relación.
-express (EGr (Gr l r)) = do
+greater (EGr (Gr l r)) = do
   exp1 <- express l
   exp2 <- express r
   case t exp1 of
@@ -212,7 +234,7 @@ express (EGr (Gr l r)) = do
 
 
 --Menor o igual que. Devuelve tipo Boolean y True si cumple la relación.
-express (ELeq (Leq l r)) = do
+lessEq (ELeq (Leq l r)) = do
   exp1 <- express l
   exp2 <- express r
   case t exp1 of
@@ -226,7 +248,7 @@ express (ELeq (Leq l r)) = do
 
 
 --Menor que. Devuelve tipo Boolean y True si cumple la relación.
-express (ELess (Less l r)) = do
+lesser (ELess (Less l r)) = do
   exp1 <- express l
   exp2 <- express r
   case t exp1 of
@@ -240,7 +262,7 @@ express (ELess (Less l r)) = do
 
 
 --Distinto de. Devuelve tipo Boolean y True si cumple la relación.
-express (ENeq (Neq l r)) = do
+notEq (ENeq (Neq l r)) = do
   exp1 <- express l
   exp2 <- express r
   let eqType = t exp1 == t exp2
@@ -254,7 +276,7 @@ express (ENeq (Neq l r)) = do
 
 
 --Distinto de. Devuelve tipo Boolean y True si cumple la relación.
-express (EEqual (Equal l r)) = do
+equal (EEqual (Equal l r)) = do
   exp1 <- express l
   exp2 <- express r
   let eqType = t exp1 == t exp2
@@ -268,7 +290,7 @@ express (EEqual (Equal l r)) = do
 
 
 --Negativo. Devuelve tipo Number y el valor.
-express (ENeg  e) = do
+negat (ENeg  e) = do
   var <- express e
   case t var of
     Number -> do return()
@@ -278,7 +300,7 @@ express (ENeg  e) = do
 
 
 --Negación. Devuelve tipo Boolean y el valor.
-express (ENot  e) = do
+nega (ENot  e) = do
   var <- express e
   case t var of
     Number -> do return() -- Error ):
@@ -288,7 +310,7 @@ express (ENot  e) = do
 
 
 --Identificadores. Devuelve el tipo y el valor.
-express (EToken (TIdent _ id)) = do
+identifier (EToken (TIdent _ id)) = do
   scope <- get
   let tableSym  = sym scope
   let var = findSym tableSym id
@@ -298,24 +320,25 @@ express (EToken (TIdent _ id)) = do
   let x = fromJust var 
   return x
 
+  
 
 --Constante True. Devuelve tipo Boolean y True.
-express (EToken (TTrue _)) = do
+constTrue (EToken (TTrue _)) = do
   return (Variable Boolean 0 True)
 
 
 --Constante False. Devuelve tipo Boolean y False.
-express (EToken (TFalse _)) = do
+constFalse (EToken (TFalse _)) = do
   return (Variable Boolean 0 False)
 
 
 --Número. Devuelve tipo Number y el valor.
-express (EToken (TNum _ n)) = do
+numb (EToken (TNum _ n)) = do
   return (Variable Number n False)
 
 
 -- Llamada a funcion
-express (EFCall (FCall t exp)) = do funcCall (FCall t exp)
+fCall (EFCall (FCall t exp)) = do funcCall (FCall t exp)
 
 
 -- Funcion recursiva que verifica si los parametros coinciden en una
