@@ -22,7 +22,7 @@ type SymFunc  = Map String Function             -- Tabla de funciones, eso si es
 data Type = Boolean | Number | Void
             deriving (Show, Eq)
 
-data TypeScope = TFunction | TWithDo | TFor | TForBy | TProgran deriving (Show)
+data TypeScope = IsFun | IsWithDo | IsFor | IsForBy | IsProgram deriving (Show)
 
 -- Tipo para las variables guardadas en la tabla de simbolos
 -- preguntar si una variable puede contener un string
@@ -47,7 +47,7 @@ data Scope = Scope  { sym     :: SymTable           -- tabla de simbolos
                     , funName :: String             -- nombre de la funcion
                     , typeSc  :: TypeScope          -- tipo de alcance, opciones: una funcion, do, for, forby
                     }
-                    deriving (Show)
+                    -- deriving (Show)
                 
 type RetMonad = RWS String (S.Seq(String)) Scope
 
@@ -59,7 +59,7 @@ initialState =  Scope
                       [0]
                       Void
                       ""
-                      TFunction
+                      IsFun
 
 
 -----------------------------  FUNCIONES GLOBALES PARA MODIFICAR Scope ---------------------------------
@@ -85,12 +85,16 @@ modifyScope f (s:xs) = (f s : xs)
 -- Cambiar el nombre de la funcion de scope
 -- Recibe un string que sera el nuevo nombre de la funcion
 changeName :: String -> Scope -> Scope
-changeName s (Scope x y z v w s' ts) = Scope x y z v w s ts
+changeName s (Scope x y z v w _ ts) = Scope x y z v w s ts
 
 -- Cambiar el tipo de retorno de la funcion
 -- Recibe el nuevo tipo de retorno
 changeTypeRet :: Type -> Scope -> Scope
-changeTypeRet tr (Scope x y z v tr' w ts) = Scope x y z v tr w ts
+changeTypeRet tr (Scope x y z v _ w ts) = Scope x y z v tr w ts
+
+-- Cambiar el tipo de alcance del scope
+changeTypeScope :: TypeScope -> Scope -> Scope
+changeTypeScope ts (Scope x y z v tr w _) = Scope x y z v tr w ts
 
 
 -- Modificar altura: recibe una funcion que sera aplicada a la altura

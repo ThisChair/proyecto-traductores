@@ -14,20 +14,22 @@ import Prelude as P
 import Data.Maybe
 import RetMonad
 import Express
+import Output
 
 
 
 -- Inicia el recorrido del arbol
 start :: Init -> RetMonad ()
 start (Init funs is) = do
-  tell $ S.singleton "Funciones iniciales:"
+--  tell $ S.singleton "Funciones iniciales:"
   mapM_ function funs
   modify(changeName "_noFunction")                            -- Cambiar el nombre de la funcion
   modify(changeTypeRet Void)                                  -- Cambiar el tipo de retorno
+  modify(modifyCounter plusOne)                               -- Agregar 1 al contador
+  modify(changeTypeScope IsProgram)                           -- Cambiar el tipo de alcance
   scopeFinal <- get                                           -- Obtener el alcance final
-  tell $ S.singleton "program"
+--  tell $ S.singleton "program"
   tell $ S.singleton $ show scopeFinal
-  tell $ S.singleton "\n\n"
   modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is
 
@@ -48,17 +50,18 @@ function input = do
   -- Si todo esta bien, entonces continuar:
   modify(changeName id)                                                         -- Cambiar el nombre del identificador de la funcion
   modify(changeTypeRet typeF)                                                   -- Cambiar el tipo de retorno de la funcion
+  modify(changeTypeScope IsFun)                                                 -- Cambiar el tipo de alcance
   modify(modifyCounter $ plusOne)                                               -- Sumar uno al ultimo contador
   modify(modifyFuncT $ M.insert id (Function typeF types))                      -- Agregar el identificador a la tabla de simbolos
   modify(modifyTable  addTable)                                                 -- Añadir una nueva tabla de simbolos
   modify(modifyTable $ modifyScope $ addSyms ids types)                         -- Agregar los parametros en la tabla de simbolos
   scopeFinal <- get
   tell $ S.singleton $ show scopeFinal
-  tell $ S.singleton "\n\n"
   modify(modifyCounter addCounter)                                              -- Agregar un nuevo contador para el siguiente nivel del arbol
   P.mapM_ instruction is                                                        -- Ejecutar las instrucciones de la funcion
   modify(modifyTable eraseLastScope)                                            -- Eliminar ultimo alcance
   modify(modifyCounter eraseCounter)                                            -- Eliminar ultimo contador
+  tell $ S.singleton $ "\n"
   where (identifier, pars, is, typeF)               = getAll input
         getAll (DFun   id' pars' is')               = (id', pars', is', Void)
         getAll (DFunR  id' pars' (TBoolean _) is')  = (id', pars', is', Boolean)
@@ -103,14 +106,14 @@ dec (Dec2 typeD (TIdent _ id) exp) = do                                         
 -- Recorrer un bloque with do
 withDo :: Do -> RetMonad ()
 withDo (Do decs is) = do
-  modify(modifyHeight (+1))                                                       -- Sumar uno a la altura
+  modify(modifyHeight (+1))                                                     -- Sumar uno a la altura
   modify(modifyCounter plusOne)                                                 -- Incrementar en uno el contador actual
   modify(modifyTable addTable)                                                  -- Crear un nuevo alcance
+  modify(changeTypeScope IsWithDo)                                              -- Cambiar el tipo de alcance
   P.mapM_ dec decs                                                              -- Verificar que las declaraciones sean correctas
   scopeFinal <- get
-  tell $ S.singleton "Bloque Do"
+--  tell $ S.singleton "Bloque Do"
   tell $ S.singleton $ show scopeFinal
-  tell $ S.singleton "\n\n"
   modify(modifyCounter addCounter)                                              -- Agregar nuevo contador
   P.mapM_  instruction is                                                       -- RECORRER INSTRUCCIONES
   modify(modifyTable eraseLastScope)                                            -- Eliminar tabla agregada
@@ -121,7 +124,7 @@ withDo (Do decs is) = do
 -- Recorrer un bloque IF
 ifThen :: If -> RetMonad ()
 ifThen (If exp is) = do
-  tell $ S.singleton "Bloque if"
+--  tell $ S.singleton "Bloque if"
   valExp <- express exp                                         -- Calcular la expresion condicional
   case (t valExp) of
     Number  -> do return ()                                      -- ERROR LA EXPRESION DEBERIA SER BOOLEANA
@@ -131,7 +134,7 @@ ifThen (If exp is) = do
 -- Recorrer un bloque if else
 ifElse :: IfElse -> RetMonad ()
 ifElse (IfElse exp is1 is2) = do
-  tell $ S.singleton "Bloque if else"
+--  tell $ S.singleton "Bloque if else"
   valExp <- express exp                                       -- Calcular la expresion condicional
   case (t valExp) of
     Number  -> do return ()                                   -- ERROR LA EXPRESION DEBERIA SER BOOLEANA
@@ -143,7 +146,7 @@ ifElse (IfElse exp is1 is2) = do
 -- Recorrer un bloque while
 while :: While -> RetMonad()
 while (While exp is) = do
-  tell $ S.singleton "Bloque while"
+--  tell $ S.singleton "Bloque while"
   valExp <- express exp                                       -- Calcular la expresion condicional
   case (t valExp) of
     Number  -> do return ()                                   -- ERROR LA EXPRESION DEBERIA SER BOOLEANA
@@ -154,7 +157,7 @@ while (While exp is) = do
 -- Recorrer un bloque repeat
 rep :: Repeat -> RetMonad ()
 rep (Repeat exp is) = do
-  tell $ S.singleton "Bloque repeat"
+--  tell $ S.singleton "Bloque repeat"
   valExp <- express exp                                       -- Calcular la expresion numerica
   case (t valExp) of
     Boolean  -> do return ()                                  -- ERROR LA EXPRESION DEBERIA SER NUMERICA
@@ -177,10 +180,10 @@ for (For (TIdent _ id) exp1 exp2 is) = do
   modify(insertSym id val1)                                   -- agregar el contador a la tabla de simbolos
   modify(modifyCounter plusOne)                               -- Incrementar en uno el contador actual
   modify(modifyHeight (+1))                                   -- Sumar uno a la altura
+  modify(changeTypeScope IsFor)                               -- Cambiar el tipo de alcance
   scopeFinal <- get
-  tell $ S.singleton "Bloque For"
+--  tell $ S.singleton "Bloque For"
   tell $ S.singleton $ show scopeFinal
-  tell $ S.singleton "\n\n"
   modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is                                      -- Recorrer instrucciones
   modify(modifyTable eraseLastScope)                          -- Eliminar tabla agregada
@@ -191,7 +194,7 @@ for (For (TIdent _ id) exp1 exp2 is) = do
 -- Recorrer un bloque forBy
 forBy :: ForBy -> RetMonad ()
 forBy (ForBy (TIdent _ id) exp1 exp2 exp3 is) = do
-  tell $ S.singleton "Bloque for by"
+--  tell $ S.singleton "Bloque for by"
   val1 <- express exp1                                        -- Calcular expresion inicial
   val2 <- express exp2                                        -- Calcular expresion final
   val3 <- express exp3                                        -- Calcular expresion de salto
@@ -209,10 +212,10 @@ forBy (ForBy (TIdent _ id) exp1 exp2 exp3 is) = do
   modify(insertSym id val1)                                   -- agregar el contador a la tabla de simbolos
   modify(modifyCounter plusOne)                               -- Incrementar en uno el contador actual
   modify(modifyHeight (+1))                                   -- Sumar uno a la altura
+  modify(changeTypeScope IsForBy)                             -- Cambiar el tipo de alcance
   scopeFinal <- get                                           -- Obtener el alcance final
-  tell $ S.singleton "Bloque For"
+--  tell $ S.singleton "Bloque For"
   tell $ S.singleton $ show scopeFinal
-  tell $ S.singleton "\n\n"
   modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is                                      -- Recorrer instrucciones
   modify(modifyTable eraseLastScope)                          -- Eliminar tabla agregada
@@ -234,7 +237,7 @@ readId :: ReadId -> RetMonad ()
 readId (ReadId (TIdent _ id)) = do
   scope <- get
   let val = findSym (sym scope) id
-  tell $ S.singleton "Instruccion read"
+--  tell $ S.singleton "Instruccion read"
   case (isNothing val) of
     True  -> do return ()                                 -- ERROR VARIABLE DECLARADA
     False -> do return ()
@@ -251,20 +254,20 @@ printP (PExp exp)               = do
 -- instruccion write
 writePr :: Write -> RetMonad ()
 writePr (Write ps) = do
-  tell $ S.singleton "Intruccion write"
+--  tell $ S.singleton "Intruccion write"
   mapM_ printP ps
 
 -- instruccion writeL
 writeLPr :: WriteL -> RetMonad ()
 writeLPr (WriteL ps) = do
-  tell $ S.singleton "Instruccion writeLn"
+--  tell $ S.singleton "Instruccion writeLn"
   mapM_ printP ps
 
 
 -- instruccion de asignacion
 assig :: Assig -> RetMonad ()
 assig (Assig (TIdent _ id) exp) = do
-  tell $ S.singleton "instruccion de asignacion"
+--  tell $ S.singleton "instruccion de asignacion"
   scope   <- get
   valExp  <- express exp                                      -- Calcular valor de la expresion
   case (findSym (sym scope) id) of                            -- Verificar que la variable este declarada
@@ -275,7 +278,7 @@ assig (Assig (TIdent _ id) exp) = do
 -- instrucion de retorno
 returnIns :: Ret -> RetMonad ()
 returnIns (Ret exp) = do
-  tell $ S.singleton "instruccion de retorno"
+--  tell $ S.singleton "instruccion de retorno"
   scope <- get
   let typeReturn = typeRet scope
   val <- express exp                                            -- Calcular expresion

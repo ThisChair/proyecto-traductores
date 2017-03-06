@@ -45,8 +45,8 @@ main = do
       True  -> do 
                 let parse = parseRet toks
                 let (s, w) = execRWS (start parse) "" initialState
-                F.mapM_ putStrLn $ w
+                F.mapM_ putStr $ w
             --    putStrLn $ show s
-                putStrLn "Ok\n\n\n"
+                putStrLn "Ok\n"
            --     let (s2, w2) = execRWS (express (EToken (TIdent (AlexPn 0 0 0) "hola"))) "" initialState
            --     F.mapM_ putStrLn $ w2
