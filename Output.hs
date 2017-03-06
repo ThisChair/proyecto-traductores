@@ -16,26 +16,29 @@ import RetMonad
 import Express
 
 
+data Out = Out  { scp :: Scope
+                , sub :: Bool
+                }
 
-instance Show Scope where
-  show (Scope sym _ h c _ funName typeSc) = 
+instance Show Out where
+  show  (Out (Scope (sym:xs) _ h c _ funName typeSc) b) = 
     ( sp ++ "Alcance " ++ counter ++ ": " ++ name ++ "\n" ++
       sp ++ tab ++ "Variables: " ++ syms ++ "\n" ++
-      sp ++ tab ++ "Subalcances: \n")
+      sp ++ tab ++ "Subalcances: " ++ (if b then "None" else "") ++ "\n")
     where sp  = (P.take (8*h) (repeat ' '))
           tab = (P.take (4) (repeat ' '))
           counter = (show_count c)
           name    = (show_name funName typeSc)
-          syms    = if (P.length sym == 0) then "None" else show_var $ M.toList $ head sym
+          syms    = if (M.null sym) then "None" else show_var $ M.toList sym
           show_count  (x:[]) = show x
           show_count  (x:xs) = (show_count xs) ++ "." ++ (show x)
           show_name   id  IsFun     = ('_':id)
           show_name   id  IsProgram = "_program"
-          show_name   _   IsWithDo  = "_withdo"
+          show_name   _   IsWithDo  = "_with_do"
           show_name   _   IsFor     = "_for"
-          show_name   _   IsForBy   = "_forby"
+          show_name   _   IsForBy   = "_for_by"
           show_var []               = ""
-          show_var ((id, var):xs)   = "\n" ++ sp ++ tab ++ tab ++ id ++ " : " ++ show var ++ show_var xs 
+          show_var ((id, var):xs)   = "\n" ++ sp ++ tab ++ tab ++ id ++ " : " ++ show var ++ show_var xs
 
 instance Show Variable where
   show (Variable Boolean _ _) = "boolean"

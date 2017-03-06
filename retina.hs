@@ -16,6 +16,7 @@ import RetMonad
 import Funciones
 import Data.Sequence as S
 import Data.Foldable as F
+import Output
 
 
 -- Obtener archivo con el formato correcto, si no es el archivo correcto
@@ -45,6 +46,9 @@ main = do
       True  -> do 
                 let parse   = parseRet toks
                 let (s, w)  = execRWS (start parse) "" initialState
-                let out     = F.toList w 
+                let out1    = F.toList w
+                let out     = addN out1 
                 P.mapM_ putStr $ map show out
+                where addN (x:[])   = [Out x True]
+                      addN (x:y:xs) = (Out x (if (height x) < (height y) then False else True)) : (addN (y:xs))
       
