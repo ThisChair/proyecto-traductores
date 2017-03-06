@@ -21,10 +21,11 @@ data Out = Out  { scp :: Scope
                 }
 
 instance Show Out where
-  show  (Out (Scope (sym:xs) _ h c _ funName typeSc) b) = 
-    ( sp ++ "Alcance " ++ counter ++ ": " ++ name ++ "\n" ++
+  show  (Out (Scope (sym:xs) _ h c _ funName typeSc) b) =
+    ( (if h==0 then "\n" else "") ++ 
+      sp ++ "Alcance " ++ counter ++ ": " ++ name ++ "\n" ++
       sp ++ tab ++ "Variables: " ++ syms ++ "\n" ++
-      sp ++ tab ++ "Subalcances: " ++ (if b then "None" else "") ++ "\n")
+      sp ++ tab ++ "Sub_alcances: " ++ (if b then "None" else "") ++ "\n")
     where sp  = (P.take (8*h) (repeat ' '))
           tab = (P.take (4) (repeat ' '))
           counter = (show_count c)

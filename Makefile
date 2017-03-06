@@ -6,7 +6,7 @@ Lexer.hs : Lexer.x
 Parser.hs : Parser.y
 	happy Parser.y
 
-retina : TokenInfo.hs Tree.hs Parser.hs Lexer.hs RetMonad.hs
+retina : Lexer.hs Parser.hs TokenInfo.hs Tree.hs RetMonad.hs Express.hs Output.hs Funciones.hs
 	ghc --make retina
 
 clean :
