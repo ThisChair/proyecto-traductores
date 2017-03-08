@@ -303,6 +303,6 @@ instruction (IWrite   ins)  = writePr   ins
 instruction (IWriteL  ins)  = writeLPr  ins
 instruction (IAssig   ins)  = assig     ins
 instruction (IRet     ins)  = returnIns ins
-instruction (IFCall   ins)  = do  let f = funcCall  ins         -- ASEGURAR QUE SERA LLAMADA LA FUNCION
+instruction (IFCall   ins)  = do  f <- funcCall  ins         -- ASEGURAR QUE SERA LLAMADA LA FUNCION
                                   return ()
 instruction IEmpty          = do return ()

@@ -35,7 +35,7 @@ express (EToken (TIdent p id)) = identifier (TIdent p id)
 express (EToken (TTrue p))     = constTrue (TTrue p)
 express (EToken (TFalse p))    = constFalse (TFalse p)
 express (EToken (TNum p n))    = numb (TNum p n)
-express (EFCall (FCall t exp)) = fCall (FCall t exp)
+express (EFCall (FCall t exp)) = funcCall (FCall t exp)
 
 
 --Sumas. Devuelve tipo Number y la suma de los valores.
@@ -358,9 +358,6 @@ numb (TNum _ n) = do
   return (Variable Number n False)
 
 
--- Llamada a funcion
-fCall :: FCall -> RetMonad Variable
-fCall (FCall t exp) = do funcCall (FCall t exp)
 
 
 -- Funcion recursiva que verifica si los parametros coinciden en una
