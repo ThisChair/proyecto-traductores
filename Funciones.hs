@@ -234,12 +234,12 @@ block (BRepeat  ins)  = rep     ins
 
 -- Instruccion read 
 readId :: ReadId -> RetMonad ()
-readId (ReadId (TIdent _ id)) = do
+readId (ReadId (TIdent p id)) = do
   scope <- get
   let val = findSym (sym scope) id
 --  tell $ S.singleton "Instruccion read"
   case (isNothing val) of
-    True  -> do return ()                                 -- ERROR VARIABLE NO DECLARADA
+    True  -> do errNotDeclared (TIdent p id)                                -- ERROR VARIABLE NO DECLARADA
     False -> do return ()
 
 -- Imprimibles
