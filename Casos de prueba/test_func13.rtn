@@ -1,10 +1,15 @@
-# Probar que las funciones recursivas puedan usarse correctamente.
+# Probar que no exista correcursión.
+func predfact(number n) -> number
+begin
+    return factorial(n-1);
+end;
+
 func factorial(number n) -> number
 begin
     if n==1 or n==0 then
         return 1;
     else
-        return (factorial(n-1));
+        return (n*(predfact(n)));
     end;   
 end;
 
