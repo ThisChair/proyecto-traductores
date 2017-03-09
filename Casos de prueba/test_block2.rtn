@@ -3,6 +3,9 @@ func plus(number op1, number op2) -> number
 begin
     return op1 + op2;
 end;
+func forward(number x)
+begin
+end;
 func avanzada(boolean b, number n)
 begin
     if b then
@@ -21,7 +24,7 @@ program
           boolean i;
         do
           i = true == false;
-          while 4 do # Falla
+          while 4 do                    # FALLA
             avanzada(i, plus(j,3));
           end;
           for j from 1.5 to 4.5 do

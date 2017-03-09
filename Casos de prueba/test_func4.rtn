@@ -3,6 +3,9 @@ func plus(number op1, number op2) -> number
 begin
     return op1 + op2;
 end;
+func forward(number x)
+begin
+end;
 func plus(boolean b, number n)
 begin
     if b then

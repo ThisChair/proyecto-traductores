@@ -1,4 +1,4 @@
-# Probar que si puedas no se puedan repetir nombres de parámetros.
+# Probar que no se puedan repetir nombres de parámetros en una función.
 func plus(number op1, number op2) -> number
 begin
     return op1 + op2;
