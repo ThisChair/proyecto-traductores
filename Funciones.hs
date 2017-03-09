@@ -92,14 +92,14 @@ dec (Dec1 t ((TIdent p id):ds))   = do
         getType (TNumber  _) = Number
 dec (Dec2 typeD (TIdent p id) exp) = do                                           -- segundo tipo de declaracion, con asignacion
   scope <- get                                                                    -- obtener el alcance
+  let expectT = getType typeD
   case (M.member id (head $ sym scope)) of                                        -- buscar el identificador en el alcance actual
     True  -> do errDeclared (TIdent p id)                                         -- ERROR YA ESTA DECLARADA LA VARIABLE
-    False -> do return ()
+    False -> do modify(insertSym id (Variable expectT 0 False)) 
   var <- express exp                                                              -- EXPRESION
-  let expectT = getType typeD
   case (expectT == (t var) ) of                                                   -- Comprobar que coincidan los tipos
     False -> do errUnexpectedType exp (t var) expectT                             -- ERROR NO COINCIDE TIPO DE DECLARACION CON TIPO DE EXPRESION
-    True  -> do modify(insertSym id var)                                          -- insertar identificador en la tabla de simbolos
+    True  -> do modify(modifyTable $ modifySym id (Variable expectT 0 False))     -- insertar identificador en la tabla de simbolos
   where getType (TBoolean _) = Boolean
         getType (TNumber  _) = Number
 
