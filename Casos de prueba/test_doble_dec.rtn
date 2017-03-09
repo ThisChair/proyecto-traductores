@@ -1,4 +1,4 @@
-# Probar que no pueda usarse la función fuera de su tipo.
+# Probar que no pueda usarse una variable del alcance anterior declarando una con nombre similar y tipo distinto.
 func plus(number op1, number op2) -> number
 begin
     return op1 + op2;
