@@ -10,6 +10,6 @@ retina : Lexer.hs Parser.hs TokenInfo.hs Tree.hs RetMonad.hs Express.hs Output.h
 	ghc --make retina
 
 clean :
-	rm -f retina Lexer.hs Parser.hs *.o *.hi
+	rm -f retina Lexer.hs Parser.hs *.o *.hi *~
 
 
