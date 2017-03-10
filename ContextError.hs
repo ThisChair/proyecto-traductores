@@ -84,7 +84,7 @@ inExp (TIdent _ id1) (EToken (TIdent _ id2)) = id1 == id2
 inExp _ (EToken (TTrue _))                   = False
 inExp _ (EToken (TFalse _))                  = False
 inExp _ (EToken (TNum _ _))                  = False
-inExp _ (EFCall (FCall _ _))                 = False
+inExp t (EFCall (FCall _ e))                 = or $ P.map (inExp t) e
 
 --Error relativo a usar una variable en la asignación de si misma.
 errRecAssig :: Token -> a
