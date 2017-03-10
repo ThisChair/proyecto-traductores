@@ -55,11 +55,40 @@ show_exp (ENeq (Neq l r))               = show_exp l ++ " /= " ++ show_exp r
 show_exp (EEqual (Equal l r))           = show_exp l ++ " == " ++ show_exp r
 show_exp (ENeg e)                       = "- " ++ show_exp e
 show_exp (ENot e)                       = "not " ++ show_exp e
-show_exp (EToken (TIdent _ id))         = show id
+show_exp (EToken (TIdent _ id))         = id
 show_exp (EToken (TTrue _))             = "true"
 show_exp (EToken (TFalse _))            = "false"
 show_exp (EToken (TNum _ n))            = show n
-show_exp (EFCall (FCall (TIdent _ id) _)) = show id ++ "()"
+show_exp (EFCall (FCall (TIdent _ id) _)) = id ++ "()"
+
+--Función que determina si un identificador aparece en una expresión.
+inExp :: Token -> Exp -> Bool
+inExp t (ESum (Tree.Sum l r))                = inExp t l || inExp t r
+inExp t (EDif (Dif l r))                     = inExp t l || inExp t r
+inExp t (EMul (Mul l r))                     = inExp t l || inExp t r
+inExp t (EDiv (Div l r))                     = inExp t l || inExp t r
+inExp t (EMod (Mod l r))                     = inExp t l || inExp t r
+inExp t (EDivI (DivI l r))                   = inExp t l || inExp t r
+inExp t (EModI (ModI l r))                   = inExp t l || inExp t r
+inExp t (EOr (Or l r))                       = inExp t l || inExp t r
+inExp t (EAnd (And l r))                     = inExp t l || inExp t r
+inExp t (EGeq (Geq l r))                     = inExp t l || inExp t r
+inExp t (EGr (Gr l r))                       = inExp t l || inExp t r
+inExp t (ELeq (Leq l r))                     = inExp t l || inExp t r
+inExp t (ELess (Less l r))                   = inExp t l || inExp t r
+inExp t (ENeq (Neq l r))                     = inExp t l || inExp t r
+inExp t (EEqual (Equal l r))                 = inExp t l || inExp t r
+inExp t (ENeg e)                             = inExp t e
+inExp t (ENot e)                             = inExp t e
+inExp (TIdent _ id1) (EToken (TIdent _ id2)) = id1 == id2
+inExp _ (EToken (TTrue _))                   = False
+inExp _ (EToken (TFalse _))                  = False
+inExp _ (EToken (TNum _ _))                  = False
+inExp _ (EFCall (FCall _ _))                 = False
+
+--Error relativo a usar una variable en la asignación de si misma.
+errRecAssig :: Token -> a
+errRecAssig(TIdent (AlexPn _ l c) id) = error $ "Error en la fila " ++ show l ++ ", columna " ++ show c ++ ": Variable '" ++ id ++ "' siendo llamada durante su declaración."
 
 --Error relativo a esperar un tipo y obtener otro distinto.
 errUnexpectedType :: Exp -> Type -> Type -> a
@@ -75,12 +104,12 @@ errExpectedEqual leftE rightE = error $ "Error en la fila " ++ show l ++ " cerca
 
 --Error relativo a usar una variable no declarada.
 errNotDeclared :: Token -> a
-errNotDeclared (TIdent (AlexPn _ l c) id) = error $ "Error en la fila " ++ show l ++ ", columna " ++ show c ++ ": Variable '" ++ show id ++ "' no declarada."
+errNotDeclared (TIdent (AlexPn _ l c) id) = error $ "Error en la fila " ++ show l ++ ", columna " ++ show c ++ ": Variable '" ++ id ++ "' no declarada."
 
 
 --Error relativo a usar una función no declarada.
 errFNotDeclared :: Token -> a
-errFNotDeclared (TIdent (AlexPn _ l c) id) = error $ "Error en la fila " ++ show l ++ ", columna " ++ show c ++ ": Función '" ++ show id ++ "' no declarada."
+errFNotDeclared (TIdent (AlexPn _ l c) id) = error $ "Error en la fila " ++ show l ++ ", columna " ++ show c ++ ": Función '" ++ id ++ "' no declarada."
 
 
 --Error relativo al pasaje de un número incorrecto de parámetros.
