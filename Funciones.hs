@@ -169,15 +169,21 @@ rep (Repeat exp is) = do
 
 -- Recorrer un bloque for
 for :: For -> RetMonad ()
-for (For (TIdent _ id) exp1 exp2 is) = do
-  val1 <- express exp1                                        -- Calcular expresion inicial
-  val2 <- express exp2                                        -- Calcular expresion final
+for (For (TIdent p id) exp1 exp2 is) = do
+  case (inExp (TIdent p id) exp1) of
+    True -> do errForVar (TIdent p id) exp1                        -- ERROR VARIABLE SE USA EN LA EXPRESIÓN DE CICLO
+    False -> do return ()
+  case (inExp (TIdent p id) exp2) of
+    True -> do errForVar (TIdent p id) exp2                         -- ERROR VARIABLE SE USA EN LA EXPRESIÓN DE CICLO
+    False -> do return ()
+  val1 <- express exp1                                        -- Calcular expresión inicial
+  val2 <- express exp2                                        -- Calcular expresión final
   case (t val1) of                                            -- Verificar que la expresion inicial sea numerica 
     Number  -> do return ()
-    Boolean -> do errUnexpectedType exp1 Boolean Number       -- ERROR LA EXPRESION DEBERIA SER NUMERICA
+    Boolean -> do errUnexpectedType exp1 Boolean Number       -- ERROR LA EXPRESIÓN DEBERIA SER NUMÉRICA
   case (t val2) of                                            -- Verificar que la expresion final sea numerica
     Number  -> do return ()                                 
-    Boolean -> do errUnexpectedType exp2 Boolean Number       -- ERROR LA EXPRESION DEBERIA SER NUMERICA
+    Boolean -> do errUnexpectedType exp2 Boolean Number       -- ERROR LA EXPRESIÓN DEBERIA SER NUMÉRICA
   -- Si todo esta bien, entonces continuar
   modify(modifyTable addTable)                                -- agregar nuevo alcance
   modify(insertSym id val1)                                   -- agregar el contador a la tabla de simbolos
@@ -196,8 +202,17 @@ for (For (TIdent _ id) exp1 exp2 is) = do
 
 -- Recorrer un bloque forBy
 forBy :: ForBy -> RetMonad ()
-forBy (ForBy (TIdent _ id) exp1 exp2 exp3 is) = do
+forBy (ForBy (TIdent p id) exp1 exp2 exp3 is) = do
 --  tell $ S.singleton "Bloque for by"
+  case (inExp (TIdent p id) exp1) of
+    True -> do errForVar (TIdent p id) exp1                        -- ERROR VARIABLE SE USA EN LA EXPRESIÓN DE CICLO
+    False -> do return ()
+  case (inExp (TIdent p id) exp2) of
+    True -> do errForVar (TIdent p id) exp2                         -- ERROR VARIABLE SE USA EN LA EXPRESIÓN DE CICLO
+    False -> do return ()
+  case (inExp (TIdent p id) exp3) of
+    True -> do errForVar (TIdent p id) exp3                         -- ERROR VARIABLE SE USA EN LA EXPRESIÓN DE CICLO
+    False -> do return ()
   val1 <- express exp1                                        -- Calcular expresion inicial
   val2 <- express exp2                                        -- Calcular expresion final
   val3 <- express exp3                                        -- Calcular expresion de salto

@@ -90,6 +90,10 @@ inExp _ (EFCall (FCall _ _))                 = False
 errRecAssig :: Token -> a
 errRecAssig(TIdent (AlexPn _ l c) id) = error $ "Error en la fila " ++ show l ++ ", columna " ++ show c ++ ": Variable '" ++ id ++ "' siendo llamada durante su declaración."
 
+--Error relativo a usar una variable de ciclo en sus guardias.
+errForVar :: Token -> Exp -> a
+errForVar(TIdent (AlexPn _ l c) id) e = error $ "Error en la fila " ++ show l ++ ", columna " ++ show c ++ ": Variable de ciclo '" ++ id ++ "' siendo llamada en la expresión de guardia '" ++ show_exp  e ++"'."
+
 --Error relativo a esperar un tipo y obtener otro distinto.
 errUnexpectedType :: Exp -> Type -> Type -> a
 -- e tiene tipo obtT y se esperaba tipo expT
