@@ -46,9 +46,11 @@ addi (Tree.Sum l r) = do
   case t exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
+    Void -> do errVoidExp l
   case t exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
+    Void -> do errVoidExp r
 --  let val = num exp1 + num exp2
   return (Variable Number 0 False)
 
@@ -61,9 +63,11 @@ subs (Dif l r) = do
   case t exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
+    Void -> do errVoidExp l
   case t exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
+    Void -> do errVoidExp r
 --  let val = num exp1 - num exp2
   return (Variable Number 0 False)
 
@@ -76,9 +80,11 @@ multi (Mul l r) = do
   case t exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
+    Void -> do errVoidExp l
   case t exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
+    Void -> do errVoidExp r
 --  let val = num exp1 * num exp2
   return (Variable Number 0 False)
 
@@ -91,9 +97,11 @@ divi (Div l r) = do
   case t exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
+    Void -> do errVoidExp l
   case t exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
+    Void -> do errVoidExp r
 --  case num exp2 of
 --    0 -> do return() -- Error ):
 --   _ -> do return()
@@ -109,9 +117,11 @@ rest (Mod l r) = do
   case t exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
+    Void -> do errVoidExp l
   case t exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
+    Void -> do errVoidExp r
 --  case num exp2 of
 --    0 -> do return() -- Error ):
 --    _ -> do return()
@@ -137,9 +147,11 @@ diviI (DivI l r) = do
   case t exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
+    Void -> do errVoidExp l
   case t exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
+    Void -> do errVoidExp r
 --  case num exp2 of
 --    0 -> do return() -- Error ):
 --    _ -> do return()
@@ -165,9 +177,11 @@ restI (ModI l r) = do
   case t exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
+    Void -> do errVoidExp l
   case t exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
+    Void -> do errVoidExp r
 --  case num exp2 of
 --    0 -> do return() -- Error ):
 --    _ -> do return()
@@ -193,9 +207,11 @@ disy (Or l r) = do
   case t exp1 of
     Number -> do errUnexpectedType l Number Boolean
     Boolean -> do return()
+    Void -> do errVoidExp l
   case t exp2 of
     Number -> do errUnexpectedType r Number Boolean
     Boolean -> do return()
+    Void -> do errVoidExp r
 --  let val = bool exp1 || bool exp2
   return (Variable Boolean 0 False)
 
@@ -208,9 +224,11 @@ conj (And l r) = do
   case t exp1 of
     Number -> do errUnexpectedType l Number Boolean
     Boolean -> do return()
+    Void -> do errVoidExp l
   case t exp2 of
     Number -> do errUnexpectedType r Number Boolean
     Boolean -> do return()
+    Void -> do errVoidExp r
 --  let val = bool exp1 && bool exp2
   return (Variable Boolean 0 False)
 
@@ -223,9 +241,11 @@ greatEq (Geq l r) = do
   case t exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
+    Void -> do errVoidExp l
   case t exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
+    Void -> do errVoidExp r
 --  let val = num exp1 >= num exp2
   return (Variable Boolean 0 False)
 
@@ -238,9 +258,10 @@ greater (Gr l r) = do
   case t exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
+    Void -> do errVoidExp l
   case t exp2 of
     Number -> do return()
-    Boolean -> do errUnexpectedType r Boolean Number
+    Boolean -> do errVoidExp r
 --  let val = num exp1 > num exp2
   return (Variable Boolean 0 False)
 
@@ -253,9 +274,11 @@ lessEq (Leq l r) = do
   case t exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
+    Void -> do errVoidExp l
   case t exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
+    Void -> do errVoidExp r
 --  let val = num exp1 <= num exp2
   return (Variable Boolean 0 False)
 
@@ -268,9 +291,11 @@ lesser (Less l r) = do
   case t exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
+    Void -> do errVoidExp l
   case t exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
+    Void -> do errVoidExp r
 --  let val = num exp1 < num exp2
   return (Variable Boolean 0 False)
 
@@ -284,6 +309,10 @@ notEq (Neq l r) = do
   case eqType of
     True -> do return()
     False -> do errExpectedEqual l r
+  case t exp1 of
+    Number -> do return()
+    Boolean -> do return()
+    Void -> do errVoidExp l
 --  let val = case t exp1 of 
 --              Number -> num exp1 /= num exp2
 --              Boolean -> bool exp1 /= bool exp2
@@ -299,6 +328,10 @@ equal (Equal l r) = do
   case eqType of
     True -> do return()
     False -> do errExpectedEqual l r
+  case t exp1 of
+    Number -> do return()
+    Boolean -> do return()
+    Void -> do errVoidExp l
 --  let val = case t exp1 of 
 --              Number -> num exp1 == num exp2
 --              Boolean -> bool exp1 == bool exp2
@@ -312,6 +345,7 @@ negat e = do
   case t var of
     Number -> do return()
     Boolean -> do errUnexpectedType e Boolean Number
+    Void -> do errVoidExp e
 --  let val = - num var
   return (Variable Number 0 False)
 
@@ -323,6 +357,7 @@ nega (ENot  e) = do
   case t var of
     Number -> do errUnexpectedType e Number Boolean
     Boolean -> do return()
+    Void -> do errVoidExp e
 --  let val = not $ bool var
   return (Variable Boolean 0 False)
 

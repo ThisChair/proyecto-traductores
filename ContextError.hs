@@ -106,6 +106,11 @@ errExpectedEqual :: Exp -> Exp -> a
 errExpectedEqual leftE rightE = error $ "Error en la fila " ++ show l ++ " cerca de la columna " ++ show c ++ ": Se esperaba que las expresiones '" ++ show_exp leftE ++ "' y '" ++ show_exp rightE ++ "' tuvieran el mismo tipo."
                     where (l,c) = retrievePos leftE
 
+--Error relativo a recibir una función sin retorno como expresión.
+errVoidExp :: Exp -> a
+errVoidExp e = error $ "Error en la fila " ++ show l ++ ", columna " ++ show c ++ ": La función '" ++ show_exp e ++ "' es de tipo void y no puede ser usada en expresiones."
+                    where (l,c) = retrievePos e
+                    
 --Error relativo a usar una variable no declarada.
 errNotDeclared :: Token -> a
 errNotDeclared (TIdent (AlexPn _ l c) id) = error $ "Error en la fila " ++ show l ++ ", columna " ++ show c ++ ": Variable '" ++ id ++ "' no declarada."
@@ -131,6 +136,11 @@ errFDeclared (DFunR (TIdent (AlexPn _ l c) id ) _ _ _) = error $ "Error en la fi
 errRepArg :: DefFunc -> a
 errRepArg (DFun (TIdent (AlexPn _ l c) id ) _ _) = error $ "Error en la fila " ++ show l ++ " cerca de la columna " ++ show c ++ ": La función '" ++ id ++ "' usa parámetros con nombres repetidos."
 errRepArg (DFunR (TIdent (AlexPn _ l c) id ) _ _ _) = error $ "Error en la fila " ++ show l ++ " cerca de la columna " ++ show c ++ ": La función '" ++ id ++ "' usa parámetros con nombres repetidos."
+
+--Error relativo a esperar una instrucción de retorno cuando no existe una.
+errNoRet :: DefFunc -> RetMonad()
+errNoRet (DFunR (TIdent (AlexPn _ l c) id ) _ _ _) = error $ "Error en la fila " ++ show l ++ " cerca de la columna " ++ show c ++ ": La función '" ++ id ++ "' esperaba un valor de retorno pero no se encontró 'return'."
+errNoRet _ = return()
 
 --Error relativo a que la variable ya fue declarada.
 errDeclared :: Token -> a

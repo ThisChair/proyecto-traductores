@@ -45,6 +45,7 @@ data Scope = Scope  { sym     :: SymTable           -- tabla de simbolos
                     , typeRet :: Type               -- tipo de retorno
                     , funName :: String             -- nombre de la funcion
                     , typeSc  :: TypeScope          -- tipo de alcance, opciones: una funcion, do, for, forby
+                    , foundR  :: Bool               -- Encontró un return
                     }
                     -- deriving (Show)
                 
@@ -59,6 +60,7 @@ initialState =  Scope
                       Void
                       ""
                       IsFun
+                      False
 
 
 -----------------------------  FUNCIONES GLOBALES PARA MODIFICAR Scope ---------------------------------
@@ -67,7 +69,7 @@ initialState =  Scope
 -- hacer modify (modifyTable f) donde f es una funcion
 -- que toma la tabla de simbolos actual y devuelve otra tabla de simbolos
 modifyTable :: (SymTable -> SymTable) -> Scope -> Scope
-modifyTable f (Scope symTable x y z v w ts)    = Scope (f symTable) x y z v w ts
+modifyTable f (Scope symTable x y z v w ts fr)    = Scope (f symTable) x y z v w ts fr
 
 
 -- Usar cuando se tenga un nuevo alcance, agrega una nueva tabla de simbolos
@@ -84,27 +86,30 @@ modifyScope f (s:xs) = (f s : xs)
 -- Cambiar el nombre de la funcion de scope
 -- Recibe un string que sera el nuevo nombre de la funcion
 changeName :: String -> Scope -> Scope
-changeName s (Scope x y z v w _ ts) = Scope x y z v w s ts
+changeName s (Scope x y z v w _ ts fr) = Scope x y z v w s ts fr
 
 -- Cambiar el tipo de retorno de la funcion
 -- Recibe el nuevo tipo de retorno
 changeTypeRet :: Type -> Scope -> Scope
-changeTypeRet tr (Scope x y z v _ w ts) = Scope x y z v tr w ts
+changeTypeRet tr (Scope x y z v _ w ts fr) = Scope x y z v tr w ts fr
 
 -- Cambiar el tipo de alcance del scope
 changeTypeScope :: TypeScope -> Scope -> Scope
-changeTypeScope ts (Scope x y z v tr w _) = Scope x y z v tr w ts
+changeTypeScope ts (Scope x y z v tr w _ fr) = Scope x y z v tr w ts fr
 
+-- Cambia si se ha encontrado una instrucción de return
+changeFoundR :: Bool -> Scope -> Scope
+changeFoundR found (Scope x y z v tr w ts _) = Scope x y z v tr w ts found
 
 -- Modificar altura: recibe una funcion que sera aplicada a la altura
 -- hacer modify(modifyHeight f) donde f es la funcion que modificara la altura
 modifyHeight :: (Int -> Int) -> Scope -> Scope
-modifyHeight f (Scope x y h z v w ts) = Scope x y (f h) z v w ts
+modifyHeight f (Scope x y h z v w ts fr) = Scope x y (f h) z v w ts fr
 
 -- Modificar contador de alcances: recibe una funcion que sera aplicada al contador
 -- hacer modify(modifyCount f) donde f es la funcionn que modificara el contador
 modifyCounter :: ([Int] -> [Int]) -> Scope -> Scope
-modifyCounter f (Scope x y z c v w ts) = Scope x y z (f c) v w ts
+modifyCounter f (Scope x y z c v w ts fr) = Scope x y z (f c) v w ts fr
 
 -- Aumentar contador en uno, cuando se encuentra un alcance se debe aumentar en uno, el
 -- ultimo nivel del contador. No puede ser llamado cuando la lista esta vacia

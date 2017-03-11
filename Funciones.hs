@@ -23,6 +23,15 @@ import ContextError
 start :: Init -> RetMonad ()
 start (Init funs is) = do
 --  tell $ S.singleton "Funciones iniciales:"
+  modify(modifyFuncT $ M.insert "home" (Function Void []))
+  modify(modifyFuncT $ M.insert "openeye" (Function Void []))
+  modify(modifyFuncT $ M.insert "closeeye" (Function Void []))
+  modify(modifyFuncT $ M.insert "forward" (Function Void [Number]))
+  modify(modifyFuncT $ M.insert "backward" (Function Void [Number]))
+  modify(modifyFuncT $ M.insert "rotatel" (Function Void [Number]))
+  modify(modifyFuncT $ M.insert "rotater" (Function Void [Number]))
+  modify(modifyFuncT $ M.insert "setposition" (Function Void [Number,Number]))
+  modify(modifyFuncT $ M.insert "arc" (Function Void [Number,Number]))
   mapM_ function funs
   modify(changeName "_noFunction")                            -- Cambiar el nombre de la funcion
   modify(changeTypeRet Void)                                  -- Cambiar el tipo de retorno
@@ -33,6 +42,7 @@ start (Init funs is) = do
   tell $ S.singleton $ scopeFinal
   modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is
+  where modifyFuncT f (Scope x symFunc y z v w ts fr)  = Scope x (f symFunc) y z v w ts fr
 
 
 -- Recorre las funciones iniciales
@@ -56,10 +66,15 @@ function input = do
   modify(modifyFuncT $ M.insert id (Function typeF types))                      -- Agregar el identificador a la tabla de simbolos
   modify(modifyTable  addTable)                                                 -- Añadir una nueva tabla de simbolos
   modify(modifyTable $ modifyScope $ addSyms ids types)                         -- Agregar los parametros en la tabla de simbolos
+  modify(changeFoundR False)
   scopeFinal <- get
   tell $ S.singleton $ scopeFinal
   modify(modifyCounter addCounter)                                              -- Agregar un nuevo contador para el siguiente nivel del arbol
   P.mapM_ instruction is                                                        -- Ejecutar las instrucciones de la funcion
+  scopeCheck <- get
+  case (foundR scopeCheck) of
+    False -> errNoRet input
+    True -> return()
   modify(modifyTable eraseLastScope)                                            -- Eliminar ultimo alcance
   modify(modifyCounter eraseCounter)                                            -- Eliminar ultimo contador
 --  tell $ S.singleton $ "\n"
@@ -73,7 +88,7 @@ function input = do
         getId   (Par _ (TIdent _ id''))             = id''                        -- funcion para obtener el identificador de un parametro
         types                                       = P.map getType pars          -- obtener los tipos de los parametros
         ids                                         = P.map getId   pars          -- obtener los identificadores de los parametros
-        modifyFuncT f (Scope x symFunc y z v w ts)  = Scope x (f symFunc) y z v w ts
+        modifyFuncT f (Scope x symFunc y z v w ts fr)  = Scope x (f symFunc) y z v w ts fr
         addSyms [] [] symT                          = symT
         addSyms (x:xs) (y:ys) symT                  = M.insert  x (Variable y 0 False) (addSyms xs ys symT)
 
@@ -301,6 +316,7 @@ returnIns :: Ret -> RetMonad ()
 returnIns (Ret exp) = do
 --  tell $ S.singleton "instruccion de retorno"
   scope <- get
+  modify(changeFoundR True)                                     -- Indica que se encontró una expresión de retorno
   let typeReturn = typeRet scope
   val <- express exp                                            -- Calcular expresion
   case typeReturn of                                            -- Verificar que se este en una funcion que devuelva un valor

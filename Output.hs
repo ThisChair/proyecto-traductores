@@ -21,7 +21,7 @@ data Out = Out  { scp :: Scope
                 }
 
 instance Show Out where
-  show  (Out (Scope (sym:xs) _ h c _ funName typeSc) b) =
+  show  (Out (Scope (sym:xs) _ h c _ funName typeSc _) b) =
     ( (if h==0 then "\n" else "") ++ 
       sp ++ "Alcance " ++ counter ++ ": " ++ name ++ "\n" ++
       sp ++ tab ++ "Variables: " ++ syms ++ "\n" ++
