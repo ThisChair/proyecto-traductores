@@ -111,15 +111,16 @@ dec (Dec2 typeD (TIdent p id) exp) = do                                         
   case (M.member id (head $ sym scope)) of                                        -- buscar el identificador en el alcance actual
     True  -> do errDeclared (TIdent p id)                                         -- ERROR YA ESTA DECLARADA LA VARIABLE
     False -> do modify(insertSym id (Variable expectT 0 False)) 
-  var <- express exp                                                              -- EXPRESION
-  case inExp (TIdent p id) exp of
-    True -> do errRecAssig (TIdent p id)                                          -- ERROR DECLARACIÓN USADA DURANTE ASIGNACION
+  case (inExp (TIdent p id)) exp of
+    True  -> do errRecAssig (TIdent p id)                                          -- ERROR DECLARACIÓN USADA DURANTE ASIGNACION
     False -> do return()
+  var <- express exp                                                              -- EXPRESION
   case (expectT == (t var) ) of                                                   -- Comprobar que coincidan los tipos
     False -> do errUnexpectedType exp (t var) expectT                             -- ERROR NO COINCIDE TIPO DE DECLARACION CON TIPO DE EXPRESION
     True  -> do modify(modifyTable $ modifySym id (Variable expectT 0 False))     -- insertar identificador en la tabla de simbolos
   where getType (TBoolean _) = Boolean
         getType (TNumber  _) = Number
+
 
 
 
@@ -329,7 +330,6 @@ returnIns (Ret exp) = do
 
 
 -- Ejecutar una instruccion
--- Falta llamada a funcion e instruccion de retorno
 instruction :: Ins -> RetMonad ()
 instruction (IBlock   ins)  = block     ins
 instruction (IReadId  ins)  = readId    ins
