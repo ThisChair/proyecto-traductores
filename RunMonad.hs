@@ -1,5 +1,7 @@
-module RetMonad where
-import Control.Monad.State.Strict
+-- Recordar que falta el return
+-- modificar estructura scope :(
+module RunMonad where
+import Control.Monad.RWS.Strict
 import Tree
 import TokenInfo
 import Lexer
@@ -10,7 +12,7 @@ import Data.Set as Set
 import Prelude as P
 import Data.Maybe
 
-type SymScope = Map String Type                 -- Tabla de simbolo de un alcance en especifico
+type SymScope = Map String Variable             -- Tabla de simbolo de un alcance en especifico
 type SymTable = [SymScope]                      -- Tabla de simbolos, realmente es una lista de tablas de simbolos
 type SymFunc  = Map String Function             -- Tabla de funciones, eso si es una sola tabla :)
 
@@ -22,11 +24,18 @@ data Type = Boolean | Number | Void
 
 data TypeScope = IsFun | IsWithDo | IsFor | IsForBy | IsProgram deriving (Show)
 
+-- Tipo para las variables guardadas en la tabla de simbolos
+-- preguntar si una variable puede contener un string
+data Variable = Variable { t :: Type
+                         , num  :: Double
+                         , bool :: Bool }
 
 
 -- Tipo de datos para almacenar las funciones
 data Function = Function { ret :: Type              -- tipo de valor de retorno de la funcion
-                         , parameters :: [Type] }   -- tipo de los parametros de la fucion
+                         , paramId :: [String]
+                         , parameters :: [Type]     -- tipo de los parametros de la fucion
+                         , instructions :: [Ins]    -- lista de instrucciones de la funcion
                          deriving (Show)
 
 
@@ -40,9 +49,9 @@ data Scope = Scope  { sym     :: SymTable           -- tabla de simbolos
                     , typeSc  :: TypeScope          -- tipo de alcance, opciones: una funcion, do, for, forby
                     , foundR  :: Bool               -- Encontró un return
                     }
-                    deriving (Show)
+                    -- deriving (Show)
                 
-type RetMonad = State Scope
+type RunMonad = RWS String (S.Seq(Scope)) Scope
 
 -- Estado inicial del Monad
 initialState =  Scope
@@ -127,22 +136,27 @@ eraseLastScope (x:xs) = xs
 
 -- Verificar si un identificador esta en la tabla de simbolos
 -- si encuentra el identificador retorna su informacion
-findSym :: SymTable -> String -> Maybe Type
+findSym :: SymTable -> String -> Maybe Variable
 findSym []      id  = Nothing
 findSym (ss:xs) id  = if (isNothing var) then (findSym xs id) else var 
   where var = M.lookup id ss
 
 
 -- Modificar el valor de una variable en la tabla de simbolos
-modifySym :: String -> Type -> SymTable -> SymTable
+modifySym :: String -> Variable -> SymTable -> SymTable
 modifySym id var (ss:xs) = if (isNothing var') then (ss : (modifySym id var xs)) else ((M.insert id var ss) : xs)
     where var' = M.lookup id ss
 
 -- agregar un nuevo simbolo en el ultimo alcance de la tabla de simbolos
-insertSym :: String -> Type -> Scope -> Scope
+insertSym :: String -> Variable -> Scope -> Scope
 insertSym id var = modifyTable (modifyScope (M.insert id var))
 
 -- Verifica si un identificador esta en la tabla de funciones
 -- si encuentra el identificador retorna su informacion
 findFunc :: SymFunc -> String -> Maybe Function
 findFunc symFun id = M.lookup id symFun 
+
+
+-- Variable nula
+nullVariable :: Variable
+nullVariable = Variable Void 0 False

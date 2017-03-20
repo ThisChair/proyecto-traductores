@@ -1,6 +1,6 @@
 module Express where
 
-import Control.Monad.RWS
+import Control.Monad.State.Strict
 import Tree
 import TokenInfo
 import Lexer
@@ -13,7 +13,7 @@ import Data.Maybe
 import ContextError
 
 --Maneja las expresiones
-express :: Exp -> RetMonad Variable
+express :: Exp -> RetMonad Type
 express (ESum (Tree.Sum l r))  = addi (Tree.Sum l r)
 express (EDif (Dif l r))       = subs (Dif l r)
 express (EMul (Mul l r))       = multi (Mul l r)
@@ -39,331 +39,269 @@ express (EFCall (FCall t exp)) = funcCall (FCall t exp)
 
 
 --Sumas. Devuelve tipo Number y la suma de los valores.
-addi :: Tree.Sum -> RetMonad Variable
+addi :: Tree.Sum -> RetMonad Type
 addi (Tree.Sum l r) = do
   exp1 <- express l
   exp2 <- express r
-  case t exp1 of
+  case exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
     Void -> do errVoidExp l
-  case t exp2 of
+  case exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
     Void -> do errVoidExp r
---  let val = num exp1 + num exp2
-  return (Variable Number 0 False)
+  return Number
 
   
 --Restas. Devuelve tipo Number y la resta de los valores.
-subs :: Dif -> RetMonad Variable
+subs :: Dif -> RetMonad Type
 subs (Dif l r) = do
   exp1 <- express l
   exp2 <- express r
-  case t exp1 of
+  case exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
     Void -> do errVoidExp l
-  case t exp2 of
+  case exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
     Void -> do errVoidExp r
---  let val = num exp1 - num exp2
-  return (Variable Number 0 False)
+  return Number
 
 
 --Multiplicaciones. Devuelve tipo Number y el producto de los valores.
-multi :: Mul -> RetMonad Variable 
+multi :: Mul -> RetMonad Type
 multi (Mul l r) = do
   exp1 <- express l
   exp2 <- express r
-  case t exp1 of
+  case exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
     Void -> do errVoidExp l
-  case t exp2 of
+  case exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
     Void -> do errVoidExp r
---  let val = num exp1 * num exp2
-  return (Variable Number 0 False)
+  return Number
 
 
 --Divisiones. Devuelve tipo Number y el cociente de los valores.
-divi :: Div -> RetMonad Variable
+divi :: Div -> RetMonad Type
 divi (Div l r) = do
   exp1 <- express l
   exp2 <- express r
-  case t exp1 of
+  case exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
     Void -> do errVoidExp l
-  case t exp2 of
+  case exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
     Void -> do errVoidExp r
---  case num exp2 of
---    0 -> do return() -- Error ):
---   _ -> do return()
---  let val = num exp1 / num exp2
-  return (Variable Number 0 False)
+  return Number
 
 
 --Resto. Devuelve tipo Number y el resto de la división de los valores.
-rest :: Mod -> RetMonad Variable
+rest :: Mod -> RetMonad Type
 rest (Mod l r) = do
   exp1 <- express l
   exp2 <- express r
-  case t exp1 of
+  case exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
     Void -> do errVoidExp l
-  case t exp2 of
+  case exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
     Void -> do errVoidExp r
---  case num exp2 of
---    0 -> do return() -- Error ):
---    _ -> do return()
---  let dob1 = num exp1
---  let dob2 = num exp2
---  let int1 = round dob1
---  let int2 = round dob2
---  case (dob1 /= fromInteger int1) of
---    True -> return() -- Error ):
---    False -> return()
---  case (dob2 /= fromInteger int2) of
---    True -> return() -- Error ):
---    False -> return()
---  let val = fromInteger (int1 `mod` int2)
-  return (Variable Number 0 False)
+  return Number
 
 
 --División entera. Devuelve tipo Number y la división entera de los valores.
-diviI :: DivI -> RetMonad Variable
+diviI :: DivI -> RetMonad Type
 diviI (DivI l r) = do
   exp1 <- express l
   exp2 <- express r
-  case t exp1 of
+  case exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
     Void -> do errVoidExp l
-  case t exp2 of
+  case exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
     Void -> do errVoidExp r
---  case num exp2 of
---    0 -> do return() -- Error ):
---    _ -> do return()
---  let dob1 = num exp1
---  let dob2 = num exp2
---  let int1 = round dob1
---  let int2 = round dob2
---  case (dob1 /= fromInteger int1) of
---    True -> return() -- Error ):
---    False -> return()
---  case (dob2 /= fromInteger int2) of
---    True -> return() -- Error ):
---    False -> return()
---  let val = fromInteger (int1 `div` int2)
-  return (Variable Number 0 False)
+  return Number
 
 
 --Resto entero. Devuelve tipo Number y el resto de la división de los valores.
-restI :: ModI -> RetMonad Variable
+restI :: ModI -> RetMonad Type
 restI (ModI l r) = do
   exp1 <- express l
   exp2 <- express r
-  case t exp1 of
+  case exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
     Void -> do errVoidExp l
-  case t exp2 of
+  case exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
     Void -> do errVoidExp r
---  case num exp2 of
---    0 -> do return() -- Error ):
---    _ -> do return()
---  let dob1 = num exp1
---  let dob2 = num exp2
---  let int1 = round dob1
---  let int2 = round dob2
---  case (dob1 /= fromInteger int1) of
---    True -> return() -- Error ):
---    False -> return()
---  case (dob2 /= fromInteger int2) of
---    True -> return() -- Error ):
---    False -> return()
---  let val = fromInteger (int1 `mod` int2)
-  return (Variable Number 0 False)
+  return Number
 
 
 --Disyunción. Devuelve tipo Boolean y la disyunción de los valores.
-disy :: Or -> RetMonad Variable
+disy :: Or -> RetMonad Type
 disy (Or l r) = do
   exp1 <- express l
   exp2 <- express r
-  case t exp1 of
+  case exp1 of
     Number -> do errUnexpectedType l Number Boolean
     Boolean -> do return()
     Void -> do errVoidExp l
-  case t exp2 of
+  case exp2 of
     Number -> do errUnexpectedType r Number Boolean
     Boolean -> do return()
     Void -> do errVoidExp r
---  let val = bool exp1 || bool exp2
-  return (Variable Boolean 0 False)
+  return Boolean
 
 
 --Conjunción. Devuelve tipo Boolean y la conjunción de los valores.
-conj :: And -> RetMonad Variable
+conj :: And -> RetMonad Type
 conj (And l r) = do
   exp1 <- express l
   exp2 <- express r
-  case t exp1 of
+  case exp1 of
     Number -> do errUnexpectedType l Number Boolean
     Boolean -> do return()
     Void -> do errVoidExp l
-  case t exp2 of
+  case exp2 of
     Number -> do errUnexpectedType r Number Boolean
     Boolean -> do return()
     Void -> do errVoidExp r
---  let val = bool exp1 && bool exp2
-  return (Variable Boolean 0 False)
+  return Boolean
 
 
 --Mayor o igual que. Devuelve tipo Boolean y True si cumple la relación.
-greatEq :: Geq -> RetMonad Variable
+greatEq :: Geq -> RetMonad Type
 greatEq (Geq l r) = do
   exp1 <- express l
   exp2 <- express r
-  case t exp1 of
+  case exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
     Void -> do errVoidExp l
-  case t exp2 of
+  case exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
     Void -> do errVoidExp r
---  let val = num exp1 >= num exp2
-  return (Variable Boolean 0 False)
+  return Boolean
 
 
 --Mayor que. Devuelve tipo Boolean y True si cumple la relación.
-greater :: Gr -> RetMonad Variable 
+greater :: Gr -> RetMonad Type
 greater (Gr l r) = do
   exp1 <- express l
   exp2 <- express r
-  case t exp1 of
+  case exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
     Void -> do errVoidExp l
-  case t exp2 of
+  case exp2 of
     Number -> do return()
-    Boolean -> do errVoidExp r
---  let val = num exp1 > num exp2
-  return (Variable Boolean 0 False)
+    Boolean -> do errUnexpectedType r Boolean Number
+    Void -> do errVoidExp r
+  return Boolean
 
 
 --Menor o igual que. Devuelve tipo Boolean y True si cumple la relación.
-lessEq :: Leq -> RetMonad Variable
+lessEq :: Leq -> RetMonad Type
 lessEq (Leq l r) = do
   exp1 <- express l
   exp2 <- express r
-  case t exp1 of
+  case exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
     Void -> do errVoidExp l
-  case t exp2 of
+  case exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
     Void -> do errVoidExp r
---  let val = num exp1 <= num exp2
-  return (Variable Boolean 0 False)
+  return Boolean
 
 
 --Menor que. Devuelve tipo Boolean y True si cumple la relación.
-lesser :: Less -> RetMonad Variable
+lesser :: Less -> RetMonad Type
 lesser (Less l r) = do
   exp1 <- express l
   exp2 <- express r
-  case t exp1 of
+  case exp1 of
     Number -> do return()
     Boolean -> do errUnexpectedType l Boolean Number
     Void -> do errVoidExp l
-  case t exp2 of
+  case exp2 of
     Number -> do return()
     Boolean -> do errUnexpectedType r Boolean Number
     Void -> do errVoidExp r
---  let val = num exp1 < num exp2
-  return (Variable Boolean 0 False)
+  return Boolean
 
 
 --Distinto de. Devuelve tipo Boolean y True si cumple la relación.
-notEq :: Neq -> RetMonad Variable
+notEq :: Neq -> RetMonad Type
 notEq (Neq l r) = do
   exp1 <- express l
   exp2 <- express r
-  let eqType = t exp1 == t exp2
+  let eqType = exp1 == exp2
   case eqType of
     True -> do return()
     False -> do errExpectedEqual l r
-  case t exp1 of
+  case exp1 of
     Number -> do return()
     Boolean -> do return()
     Void -> do errVoidExp l
---  let val = case t exp1 of 
---              Number -> num exp1 /= num exp2
---              Boolean -> bool exp1 /= bool exp2
-  return (Variable Boolean 0 False)
+  return Boolean
 
 
 --Distinto de. Devuelve tipo Boolean y True si cumple la relación.
-equal :: Equal -> RetMonad Variable
+equal :: Equal -> RetMonad Type
 equal (Equal l r) = do
   exp1 <- express l
   exp2 <- express r
-  let eqType = t exp1 == t exp2
+  let eqType = exp1 == exp2
   case eqType of
     True -> do return()
     False -> do errExpectedEqual l r
-  case t exp1 of
+  case exp1 of
     Number -> do return()
     Boolean -> do return()
     Void -> do errVoidExp l
---  let val = case t exp1 of 
---              Number -> num exp1 == num exp2
---              Boolean -> bool exp1 == bool exp2
-  return (Variable Boolean 0 False)
+  return Boolean
 
 
 --Negativo. Devuelve tipo Number y el valor.
-negat :: Exp -> RetMonad Variable
+negat :: Exp -> RetMonad Type
 negat e = do
   var <- express e
-  case t var of
+  case var of
     Number -> do return()
     Boolean -> do errUnexpectedType e Boolean Number
     Void -> do errVoidExp e
---  let val = - num var
-  return (Variable Number 0 False)
+  return Number
 
 
 --Negación. Devuelve tipo Boolean y el valor.
-nega :: Exp -> RetMonad Variable
+nega :: Exp -> RetMonad Type
 nega (ENot  e) = do
   var <- express e
-  case t var of
+  case var of
     Number -> do errUnexpectedType e Number Boolean
     Boolean -> do return()
     Void -> do errVoidExp e
---  let val = not $ bool var
-  return (Variable Boolean 0 False)
+  return Boolean
 
 
 --Identificadores. Devuelve el tipo y el valor.
-identifier :: Token -> RetMonad Variable
+identifier :: Token -> RetMonad Type
 identifier (TIdent p id) = do
   scope <- get
   let tableSym  = sym scope
@@ -376,21 +314,21 @@ identifier (TIdent p id) = do
 
 
 --Constante True. Devuelve tipo Boolean y True.
-constTrue :: Token -> RetMonad Variable
+constTrue :: Token -> RetMonad Type
 constTrue (TTrue _) = do
-  return (Variable Boolean 0 True)
+  return Boolean
 
 
 --Constante False. Devuelve tipo Boolean y False.
-constFalse :: Token -> RetMonad Variable
+constFalse :: Token -> RetMonad Type
 constFalse (TFalse _) = do
-  return (Variable Boolean 0 False)
+  return Boolean
 
 
 --Número. Devuelve tipo Number y el valor.
-numb :: Token -> RetMonad Variable
+numb :: Token -> RetMonad Type
 numb (TNum _ n) = do
-  return (Variable Number n False)
+  return Number
 
 
 
@@ -403,12 +341,12 @@ checkPars f [] (_:_)      = do errArgNumber f                           -- ERROR
 checkPars f (_:_) []      = do errArgNumber f                           -- ERROR, LLAMADA A FUNCION CON CANTIDAD DE PARAMETROS INCORRECTOS    
 checkPars f (ty:ts) (e:es) = do
   val <- express e                                                      -- calcular valor de la siguiente expresion
-  case (ty /= (t val))  of                                              -- Verificar que coincida el tipo del siguiente parametro
-    True  -> do errUnexpectedType e (t val) ty                          -- ERROR NO COINCIDE TIPO DE PARAMETRO
+  case (ty /= val)  of                                              -- Verificar que coincida el tipo del siguiente parametro
+    True  -> do errUnexpectedType e val ty                          -- ERROR NO COINCIDE TIPO DE PARAMETRO
     False -> checkPars f ts es                                          -- continuar verificando
 
 -- Instruccion, llamada a una funcion
-funcCall :: FCall -> RetMonad Variable
+funcCall :: FCall -> RetMonad Type
 funcCall (FCall (TIdent p id) exps) = do
   scope <- get
   let funcId = findFunc (func scope) id
@@ -416,4 +354,4 @@ funcCall (FCall (TIdent p id) exps) = do
     Nothing   -> errFNotDeclared (TIdent p id)                      -- ERROR, FUNCION NO DECLARADA
     Just val  -> do                                                 -- La funcion si esta declarada
       checkPars (TIdent p id) (parameters val) (exps)               -- Verificar que los parametros coincidan en numero y tipo
-      return (Variable (ret val) 0 False)                           -- Retorna el valor de la funcion
+      return (ret val)                           -- Retorna el valor de la funcion

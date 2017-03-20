@@ -1,6 +1,6 @@
 module ContextError where
 
-import Control.Monad.RWS
+import Control.Monad.State.Strict
 import Tree
 import TokenInfo
 import Lexer

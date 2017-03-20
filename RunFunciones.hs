@@ -1,5 +1,8 @@
-module Funciones where
-import Control.Monad.State.Strict
+-- Recordar que falta el return
+-- modificar estructura scope :(
+
+module RunFunciones where
+import Control.Monad.RWS
 import Tree
 import TokenInfo
 import Lexer
@@ -9,14 +12,13 @@ import Data.Map as M
 import Data.Set as Set
 import Prelude as P
 import Data.Maybe
-import RetMonad
-import Express
-import ContextError
+import RunMonad
+import RunExpress
 
 
 
 -- Inicia el recorrido del arbol
-start :: Init -> RetMonad ()
+start :: Init -> RunMonad ()
 start (Init funs is) = do
   modify(modifyFuncT $ M.insert "home" (Function Void []))
   modify(modifyFuncT $ M.insert "openeye" (Function Void []))
@@ -34,42 +36,23 @@ start (Init funs is) = do
   modify(changeTypeScope IsProgram)                           -- Cambiar el tipo de alcance
   modify(modifyTable  addTable)                               -- Añadir una nueva tabla de simbolos
   scopeFinal <- get                                           -- Obtener el alcance final
+  tell $ S.singleton $ scopeFinal
   modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is
   where modifyFuncT f (Scope x symFunc y z v w ts fr)  = Scope x (f symFunc) y z v w ts fr
 
 
 -- Recorre las funciones iniciales
-function :: DefFunc -> RetMonad ()
+function :: DefFunc -> RunMonad ()
 function input = do
   scope <- get                                                                  -- obtiene todo el estado del monad, lo guarda en scope
   let tableFunc   = func scope                                                  -- obtiene la tabla de los simbolos de las funciones
-  let repeatPar   = (Set.size $ Set.fromList ids) /= P.length ids               -- verifica si hay parametros con el mismo identificador
-  let isInTable   = M.member id tableFunc                                       -- verifica si el identificador esta en la tabla de simbolos
-  case isInTable of
-    True  -> do errFDeclared input                                              -- ERROR REPETIDO IDENTIFICADOR DE LA FUNCION
-    False -> do return ()
-  case repeatPar of
-    True  -> do errRepArg input                                                 -- ERROR, NOMBRES DE PARAMETROS REPETIDOS
-    False -> do return ()
-  -- Si todo esta bien, entonces continuar:
   modify(changeName id)                                                         -- Cambiar el nombre del identificador de la funcion
   modify(changeTypeRet typeF)                                                   -- Cambiar el tipo de retorno de la funcion
   modify(changeTypeScope IsFun)                                                 -- Cambiar el tipo de alcance
-  modify(modifyCounter $ plusOne)                                               -- Sumar uno al ultimo contador
-  modify(modifyFuncT $ M.insert id (Function typeF types))                      -- Agregar el identificador a la tabla de simbolos
-  modify(modifyTable  addTable)                                                 -- Añadir una nueva tabla de simbolos
-  modify(modifyTable $ modifyScope $ addSyms ids types)                         -- Agregar los parametros en la tabla de simbolos
-  modify(changeFoundR False)
+  modify(modifyFuncT $ M.insert id (Function typeF ids types is))               -- Agregar el identificador a la tabla de simbolos
   scopeFinal <- get
-  modify(modifyCounter addCounter)                                              -- Agregar un nuevo contador para el siguiente nivel del arbol
-  P.mapM_ instruction is                                                        -- Ejecutar las instrucciones de la funcion
-  scopeCheck <- get
-  case (foundR scopeCheck) of
-    False -> errNoRet input
-    True -> return()
   modify(modifyTable eraseLastScope)                                            -- Eliminar ultimo alcance
-  modify(modifyCounter eraseCounter)                                            -- Eliminar ultimo contador
   where (identifier, pars, is, typeF)               = getAll input
         getAll (DFun   id' pars' is')               = (id', pars', is', Void)
         getAll (DFunR  id' pars' (TBoolean _) is')  = (id', pars', is', Boolean)
@@ -81,42 +64,27 @@ function input = do
         types                                       = P.map getType pars          -- obtener los tipos de los parametros
         ids                                         = P.map getId   pars          -- obtener los identificadores de los parametros
         modifyFuncT f (Scope x symFunc y z v w ts fr)  = Scope x (f symFunc) y z v w ts fr
-        addSyms [] [] symT                          = symT
-        addSyms (x:xs) (y:ys) symT                  = M.insert  x y (addSyms xs ys symT)
 
 
 
 -- Agrega las declaraciones a la tabla de simbolos
-dec :: Dec -> RetMonad ()
+dec :: Dec -> RunMonad ()
 dec (Dec1 _ [])                   = return ()                                     -- Lista vacía, termina la recursión 
 dec (Dec1 t ((TIdent p id):ds))   = do   
   scope <- get                                                                    -- obtener el alcance actual
-  case (M.member id (head $ sym scope)) of                                        -- buscar el identificador en el alcance actual
-    True  -> do errDeclared (TIdent p id)                                         -- ERROR YA ESTA DECLARADA LA VARIABLE
-    False -> do modify(insertSym id (getType t))                                   -- Agregar la nueva variable a la tabla de simbolos
-                dec (Dec1 t ds)                                                   -- recursion sobre las otras variables declaradas
+  modify(insertSym id (Variable (getType t) 0 False))                             -- Agregar la nueva variable a la tabla de simbolos
+  dec (Dec1 t ds)
   where getType (TBoolean _) = Boolean
         getType (TNumber  _) = Number
 dec (Dec2 typeD (TIdent p id) exp) = do                                           -- segundo tipo de declaracion, con asignacion
   scope <- get                                                                    -- obtener el alcance
-  let expectT = getType typeD
-  case (M.member id (head $ sym scope)) of                                        -- buscar el identificador en el alcance actual
-    True  -> do errDeclared (TIdent p id)                                         -- ERROR YA ESTA DECLARADA LA VARIABLE
-    False -> do modify(insertSym id expectT) 
-  var <- express exp                                                              -- EXPRESION
-  case inExp (TIdent p id) exp of
-    True -> do errRecAssig (TIdent p id)                                          -- ERROR DECLARACIÓN USADA DURANTE ASIGNACION
-    False -> do return()
-  case (expectT == var) of                                                   -- Comprobar que coincidan los tipos
-    False -> do errUnexpectedType exp var expectT                             -- ERROR NO COINCIDE TIPO DE DECLARACION CON TIPO DE EXPRESION
-    True  -> do return()
-  where getType (TBoolean _) = Boolean
-        getType (TNumber  _) = Number
+  var <- runExpress exp                                                              -- EXPRESION
+  modify(insertSym id var) 
 
 
 
 -- Recorrer un bloque with do
-withDo :: Do -> RetMonad ()
+withDo :: Do -> RunMonad ()
 withDo (Do decs is) = do
   modify(modifyHeight (+1))                                                     -- Sumar uno a la altura
   modify(modifyCounter plusOne)                                                 -- Incrementar en uno el contador actual
@@ -132,44 +100,47 @@ withDo (Do decs is) = do
 
 
 -- Recorrer un bloque IF
-ifThen :: If -> RetMonad ()
+ifThen :: If -> RunMonad ()
 ifThen (If exp is) = do
-  valExp <- express exp                                         -- Calcular la expresion condicional
-  case valExp of
+  valExp <- runExpress exp                                         -- Calcular la expresion condicional
+  case (t valExp) of
     Number  -> do errUnexpectedType exp Number Boolean          -- ERROR LA EXPRESION DEBERIA SER BOOLEANA
     Boolean -> do P.mapM_ instruction is                        -- Recorrer las instrucciones
 
 
 -- Recorrer un bloque if else
-ifElse :: IfElse -> RetMonad ()
+ifElse :: IfElse -> RunMonad ()
 ifElse (IfElse exp is1 is2) = do
-  valExp <- express exp                                       -- Calcular la expresion condicional
-  case valExp of
+--  tell $ S.singleton "Bloque if else"
+  valExp <- runExpress exp                                       -- Calcular la expresion condicional
+  case (t valExp) of
     Number  -> do errUnexpectedType exp Number Boolean        -- ERROR LA EXPRESION DEBERIA SER BOOLEANA
     Boolean -> do P.mapM_ instruction is1                     -- Recorrer las instrucciones
                   P.mapM_ instruction is2                     -- Recorrer las instrucciones
   
 -- Recorrer un bloque while
-while :: While -> RetMonad()
+while :: While -> RunMonad()
 while (While exp is) = do
-  valExp <- express exp                                       -- Calcular la expresion condicional
-  case valExp of
+--  tell $ S.singleton "Bloque while"
+  valExp <- runExpress exp                                       -- Calcular la expresion condicional
+  case (t valExp) of
     Number  -> do errUnexpectedType exp Number Boolean        -- ERROR LA EXPRESION DEBERIA SER BOOLEANA
     Boolean -> do P.mapM_ instruction is                      -- Recorrer las instrucciones
 
 
 
 -- Recorrer un bloque repeat
-rep :: Repeat -> RetMonad ()
+rep :: Repeat -> RunMonad ()
 rep (Repeat exp is) = do
-  valExp <- express exp                                       -- Calcular la expresion numerica
-  case valExp of
+--  tell $ S.singleton "Bloque repeat"
+  valExp <- runExpress exp                                       -- Calcular la expresion numerica
+  case (t valExp) of
     Boolean  -> do errUnexpectedType exp Boolean Number       -- ERROR LA EXPRESION DEBERIA SER NUMERICA
     Number   -> do P.mapM_ instruction is                     -- Recorrer las instrucciones
 
 
 -- Recorrer un bloque for
-for :: For -> RetMonad ()
+for :: For -> RunMonad ()
 for (For (TIdent p id) exp1 exp2 is) = do
   case (inExp (TIdent p id) exp1) of
     True -> do errForVar (TIdent p id) exp1                        -- ERROR VARIABLE SE USA EN LA EXPRESIÓN DE CICLO
@@ -177,16 +148,14 @@ for (For (TIdent p id) exp1 exp2 is) = do
   case (inExp (TIdent p id) exp2) of
     True -> do errForVar (TIdent p id) exp2                         -- ERROR VARIABLE SE USA EN LA EXPRESIÓN DE CICLO
     False -> do return ()
-  val1 <- express exp1                                        -- Calcular expresión inicial
-  val2 <- express exp2                                        -- Calcular expresión final
-  case val1 of                                            -- Verificar que la expresion inicial sea numerica 
+  val1 <- runExpress exp1                                        -- Calcular expresión inicial
+  val2 <- runExpress exp2                                        -- Calcular expresión final
+  case (t val1) of                                            -- Verificar que la expresion inicial sea numerica 
     Number  -> do return ()
     Boolean -> do errUnexpectedType exp1 Boolean Number       -- ERROR LA EXPRESIÓN DEBERIA SER NUMÉRICA
-    Void -> do errUnexpectedType exp1 Void Number
-  case val2 of                                            -- Verificar que la expresion final sea numerica
+  case (t val2) of                                            -- Verificar que la expresion final sea numerica
     Number  -> do return ()                                 
     Boolean -> do errUnexpectedType exp2 Boolean Number       -- ERROR LA EXPRESIÓN DEBERIA SER NUMÉRICA
-    Void -> do errUnexpectedType exp2 Void Number
   -- Si todo esta bien, entonces continuar
   modify(modifyTable addTable)                                -- agregar nuevo alcance
   modify(insertSym id val1)                                   -- agregar el contador a la tabla de simbolos
@@ -194,6 +163,8 @@ for (For (TIdent p id) exp1 exp2 is) = do
   modify(modifyHeight (+1))                                   -- Sumar uno a la altura
   modify(changeTypeScope IsFor)                               -- Cambiar el tipo de alcance
   scopeFinal <- get
+--  tell $ S.singleton "Bloque For"
+  tell $ S.singleton $ scopeFinal
   modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is                                      -- Recorrer instrucciones
   modify(modifyTable eraseLastScope)                          -- Eliminar tabla agregada
@@ -202,8 +173,9 @@ for (For (TIdent p id) exp1 exp2 is) = do
 
 
 -- Recorrer un bloque forBy
-forBy :: ForBy -> RetMonad ()
+forBy :: ForBy -> RunMonad ()
 forBy (ForBy (TIdent p id) exp1 exp2 exp3 is) = do
+--  tell $ S.singleton "Bloque for by"
   case (inExp (TIdent p id) exp1) of
     True -> do errForVar (TIdent p id) exp1                        -- ERROR VARIABLE SE USA EN LA EXPRESIÓN DE CICLO
     False -> do return ()
@@ -213,16 +185,16 @@ forBy (ForBy (TIdent p id) exp1 exp2 exp3 is) = do
   case (inExp (TIdent p id) exp3) of
     True -> do errForVar (TIdent p id) exp3                         -- ERROR VARIABLE SE USA EN LA EXPRESIÓN DE CICLO
     False -> do return ()
-  val1 <- express exp1                                        -- Calcular expresion inicial
-  val2 <- express exp2                                        -- Calcular expresion final
-  val3 <- express exp3                                        -- Calcular expresion de salto
-  case val1 of                                            -- Verificar que la expresion inicial sea numerica 
+  val1 <- runExpress exp1                                        -- Calcular expresion inicial
+  val2 <- runExpress exp2                                        -- Calcular expresion final
+  val3 <- runExpress exp3                                        -- Calcular expresion de salto
+  case (t val1) of                                            -- Verificar que la expresion inicial sea numerica 
     Number  -> do return ()
     Boolean -> do errUnexpectedType exp1 Boolean Number       -- ERROR LA EXPRESION DEBERIA SER NUMERICA
-  case val2 of                                            -- Verificar que la expresion final sea numerica
+  case (t val2) of                                            -- Verificar que la expresion final sea numerica
     Number  -> do return ()                                 
     Boolean -> do errUnexpectedType exp2 Boolean Number       -- ERROR LA EXPRESION DEBERIA SER NUMERICA
-  case val3 of                                            -- Verificar que la expresion final sea numerica
+  case (t val3) of                                            -- Verificar que la expresion final sea numerica
     Number  -> do return ()                                 
     Boolean -> do errUnexpectedType exp3 Boolean Number       -- ERROR LA EXPRESION DEBERIA SER NUMERICA
   -- Si todo esta bien, entonces continuar
@@ -232,6 +204,8 @@ forBy (ForBy (TIdent p id) exp1 exp2 exp3 is) = do
   modify(modifyHeight (+1))                                   -- Sumar uno a la altura
   modify(changeTypeScope IsForBy)                             -- Cambiar el tipo de alcance
   scopeFinal <- get                                           -- Obtener el alcance final
+--  tell $ S.singleton "Bloque For"
+  tell $ S.singleton $ scopeFinal
   modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is                                      -- Recorrer instrucciones
   modify(modifyTable eraseLastScope)                          -- Eliminar tabla agregada
@@ -239,7 +213,7 @@ forBy (ForBy (TIdent p id) exp1 exp2 exp3 is) = do
   modify(modifyHeight (+(-1)))                                -- restar uno a la altura
   
 -- Ejecutar un bloque
-block :: Block -> RetMonad ()
+block :: Block -> RunMonad ()
 block (BDo      ins)  = withDo  ins
 block (BIf      ins)  = ifThen  ins
 block (BIfElse  ins)  = ifElse  ins
@@ -249,66 +223,71 @@ block (BForby   ins)  = forBy   ins
 block (BRepeat  ins)  = rep     ins
 
 -- Instruccion read 
-readId :: ReadId -> RetMonad ()
+readId :: ReadId -> RunMonad ()
 readId (ReadId (TIdent p id)) = do
   scope <- get
   let val = findSym (sym scope) id
+--  tell $ S.singleton "Instruccion read"
   case (isNothing val) of
     True  -> do errNotDeclared (TIdent p id)                                -- ERROR VARIABLE NO DECLARADA
     False -> do return ()
 
 -- Imprimibles
-printP :: Print -> RetMonad ()
+printP :: Print -> RunMonad ()
 printP (PToken (TString _ str)) = do return ()
 printP (PExp exp)               = do
-    val <- express exp                                -- Calcular valor de la expresion
-    case val of
+    val <- runExpress exp                                -- Calcular valor de la expresion
+    case (t val) of
       Number  -> do return ()
       Boolean -> do return ()
 
 -- instruccion write
-writePr :: Write -> RetMonad ()
+writePr :: Write -> RunMonad ()
 writePr (Write ps) = do
+--  tell $ S.singleton "Intruccion write"
   mapM_ printP ps
 
 -- instruccion writeL
-writeLPr :: WriteL -> RetMonad ()
+writeLPr :: WriteL -> RunMonad ()
 writeLPr (WriteL ps) = do
+--  tell $ S.singleton "Instruccion writeLn"
   mapM_ printP ps
 
 
 -- instruccion de asignacion
-assig :: Assig -> RetMonad ()
+assig :: Assig -> RunMonad ()
 assig (Assig (TIdent p id) exp) = do
+--  tell $ S.singleton "instruccion de asignacion"
   scope   <- get
-  valExp  <- express exp                                      -- Calcular valor de la expresion
+  valExp  <- runExpress exp                                      -- Calcular valor de la expresion
   case (findSym (sym scope) id) of                            -- Verificar que la variable este declarada
     Nothing   -> do errNotDeclared (TIdent p id)              -- ERROR VARIABLE NO DECLARADA
     Just var  -> do
-      case (var /= valExp) of
-        True -> do errUnexpectedType (EToken (TIdent p id)) var valExp -- ERROR EN TIPO DE LA VARIABLE
+      case (t var /= t valExp) of
+        True -> do errUnexpectedType (EToken (TIdent p id)) (t var) (t valExp) -- ERROR EN TIPO DE LA VARIABLE
         False -> do modify(modifyTable $ modifySym id var)    -- modificar la variable
 
 
 -- instrucion de retorno
-returnIns :: Ret -> RetMonad ()
+returnIns :: Ret -> RunMonad ()
 returnIns (Ret exp) = do
+--  tell $ S.singleton "instruccion de retorno"
   scope <- get
   modify(changeFoundR True)                                     -- Indica que se encontró una expresión de retorno
   let typeReturn = typeRet scope
-  val <- express exp                                            -- Calcular expresion
+  val <- runExpress exp                                            -- Calcular expresion
   case typeReturn of                                            -- Verificar que se este en una funcion que devuelva un valor
     Void  -> do errUnexpectedReturn exp                         -- ERROR, NO SE ENCUENTRA EN UN ALCANCE CON VALOR DE RETORNO
     _     -> do return ()
-  case (typeReturn == val) of
-    False  -> do errUnexpectedType exp val typeReturn        -- ERROR, SE ESPERA UNA EXPRESION DEL TIPO 'typeRet'
+  case (typeReturn == (t val)) of
+    False  -> do errUnexpectedType exp (t val) typeReturn        -- ERROR, SE ESPERA UNA EXPRESION DEL TIPO 'typeRet'
     True -> do return ()
 
 
 
 -- Ejecutar una instruccion
 -- Falta llamada a funcion e instruccion de retorno
-instruction :: Ins -> RetMonad ()
+instruction :: Ins -> RunMonad ()
 instruction (IBlock   ins)  = block     ins
 instruction (IReadId  ins)  = readId    ins
 instruction (IWrite   ins)  = writePr   ins
