@@ -71,7 +71,7 @@ divi (Div l r) = do
   exp2 <- runExpress r
   case num exp2 of
     0 -> do return() -- Error ):
-   _ -> do return()
+    _ -> do return()
   let val = num exp1 / num exp2
   return (Variable Number val False)
 
@@ -266,4 +266,6 @@ numb (TNum _ n) = do
 funcCall :: FCall -> RunMonad Variable
 funcCall (FCall (TIdent p id) exps) = do
   scope <- get
-      return (Variable (ret val) 1 False)                           -- Retorna el valor de la funcion
+  let funcId = findFunc (func scope) id
+  let val = fromJust funcId
+  return (Variable (ret val) 1 False)                           -- Retorna el valor de la funcion

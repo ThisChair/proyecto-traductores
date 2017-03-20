@@ -1,7 +1,7 @@
 -- Recordar que falta el return
 -- modificar estructura scope :(
 module RunMonad where
-import Control.Monad.RWS.Strict
+import Control.Monad.RWS
 import Tree
 import TokenInfo
 import Lexer
@@ -35,8 +35,8 @@ data Variable = Variable { t :: Type
 data Function = Function { ret :: Type              -- tipo de valor de retorno de la funcion
                          , paramId :: [String]
                          , parameters :: [Type]     -- tipo de los parametros de la fucion
-                         , instructions :: [Ins]    -- lista de instrucciones de la funcion
-                         deriving (Show)
+                         , instructions :: [Ins] }  -- lista de instrucciones de la funcion
+                         --deriving (Show)
 
 
 -- tipo de dato del monad 
