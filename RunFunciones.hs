@@ -168,18 +168,18 @@ readId (ReadId (TIdent p id)) = do
   let var = fromJust (findSym (sym scope) id)
   val <- liftIO $ getLine
   case (mutable var) of
-    False -> do return () -- Error ):
+    False -> do errInmutable (TIdent p id)
     True -> do
       case (t var) of
         Boolean -> do
           case val of
             "true" -> do modify(modifyTable $ modifySym id (Variable Boolean 0 True True))
             "false" -> do modify(modifyTable $ modifySym id (Variable Boolean 0 False True))
-            _ -> do return () --Error ):
+            _ -> do errRead (TIdent p id) Boolean
         Number -> do
           let n = readMaybe val
           case n of
-            Nothing -> return() -- Error ):
+            Nothing -> errRead (TIdent p id) Number
             Just x -> modify(modifyTable $ modifySym id (Variable Number x False True))
   return ()
 
@@ -215,7 +215,7 @@ assig (Assig (TIdent p id) exp) = do
   scope   <- get
   let var = fromJust (findSym (sym scope) id)
   case (mutable var) of
-    False -> do return () --Error ):
+    False -> do errInmutable (TIdent p id)
     True -> do
       valExp  <- runExpress exp                                      -- Calcular valor de la expresion
       modify(modifyTable $ modifySym id valExp)                      -- modificar la variable
