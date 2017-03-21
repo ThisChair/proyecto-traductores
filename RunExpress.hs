@@ -43,7 +43,7 @@ addi (Tree.Sum l r) = do
   exp1 <- runExpress l
   exp2 <- runExpress r
   let val = num exp1 + num exp2
-  return (Variable Number val False)
+  return (Variable Number val False True)
 
   
 --Restas. Devuelve tipo Number y la resta de los valores.
@@ -52,7 +52,7 @@ subs (Dif l r) = do
   exp1 <- runExpress l
   exp2 <- runExpress r
   let val = num exp1 - num exp2
-  return (Variable Number val False)
+  return (Variable Number val False True)
 
 
 --Multiplicaciones. Devuelve tipo Number y el producto de los valores.
@@ -61,7 +61,7 @@ multi (Mul l r) = do
   exp1 <- runExpress l
   exp2 <- runExpress r
   let val = num exp1 * num exp2
-  return (Variable Number val False)
+  return (Variable Number val False True)
 
 
 --Divisiones. Devuelve tipo Number y el cociente de los valores.
@@ -73,7 +73,7 @@ divi (Div l r) = do
     0 -> do return() -- Error ):
     _ -> do return()
   let val = num exp1 / num exp2
-  return (Variable Number val False)
+  return (Variable Number val False True)
 
 
 --Resto. Devuelve tipo Number y el resto de la división de los valores.
@@ -86,16 +86,10 @@ rest (Mod l r) = do
     _ -> do return()
   let dob1 = num exp1
   let dob2 = num exp2
-  let int1 = round dob1
-  let int2 = round dob2
-  case (dob1 /= fromInteger int1) of
-    True -> return() -- Error ):
-    False -> return()
-  case (dob2 /= fromInteger int2) of
-    True -> return() -- Error ):
-    False -> return()
-  let val = fromInteger (int1 `mod` int2)
-  return (Variable Number val False)
+  let int1 = floor dob1
+  let int2 = floor dob2
+  let val = fromInteger (int1 `mod` int2) -- Esto no es la operación que piden.
+  return (Variable Number val False True)
 
 
 --División entera. Devuelve tipo Number y la división entera de los valores.
@@ -108,16 +102,10 @@ diviI (DivI l r) = do
     _ -> do return()
   let dob1 = num exp1
   let dob2 = num exp2
-  let int1 = round dob1
-  let int2 = round dob2
-  case (dob1 /= fromInteger int1) of
-    True -> return() -- Error ):
-    False -> return()
-  case (dob2 /= fromInteger int2) of
-    True -> return() -- Error ):
-    False -> return()
+  let int1 = floor dob1
+  let int2 = floor dob2
   let val = fromInteger (int1 `div` int2)
-  return (Variable Number val False)
+  return (Variable Number val False True)
 
 
 --Resto entero. Devuelve tipo Number y el resto de la división de los valores.
@@ -132,14 +120,8 @@ restI (ModI l r) = do
   let dob2 = num exp2
   let int1 = round dob1
   let int2 = round dob2
-  case (dob1 /= fromInteger int1) of
-    True -> return() -- Error ):
-    False -> return()
-  case (dob2 /= fromInteger int2) of
-    True -> return() -- Error ):
-    False -> return()
   let val = fromInteger (int1 `mod` int2)
-  return (Variable Number val False)
+  return (Variable Number val False True)
 
 
 --Disyunción. Devuelve tipo Boolean y la disyunción de los valores.
@@ -148,7 +130,7 @@ disy (Or l r) = do
   exp1 <- runExpress l
   exp2 <- runExpress r
   let val = bool exp1 || bool exp2
-  return (Variable Boolean 0 val)
+  return (Variable Boolean 0 val True)
 
 
 --Conjunción. Devuelve tipo Boolean y la conjunción de los valores.
@@ -157,7 +139,7 @@ conj (And l r) = do
   exp1 <- runExpress l
   exp2 <- runExpress r
   let val = bool exp1 && bool exp2
-  return (Variable Boolean 0 val)
+  return (Variable Boolean 0 val True)
 
 
 --Mayor o igual que. Devuelve tipo Boolean y True si cumple la relación.
@@ -166,7 +148,7 @@ greatEq (Geq l r) = do
   exp1 <- runExpress l
   exp2 <- runExpress r
   let val = num exp1 >= num exp2
-  return (Variable Boolean 0 val)
+  return (Variable Boolean 0 val True)
 
 
 --Mayor que. Devuelve tipo Boolean y True si cumple la relación.
@@ -175,7 +157,7 @@ greater (Gr l r) = do
   exp1 <- runExpress l
   exp2 <- runExpress r
   let val = num exp1 > num exp2
-  return (Variable Boolean 0 val)
+  return (Variable Boolean 0 val True)
 
 
 --Menor o igual que. Devuelve tipo Boolean y True si cumple la relación.
@@ -184,7 +166,7 @@ lessEq (Leq l r) = do
   exp1 <- runExpress l
   exp2 <- runExpress r
   let val = num exp1 <= num exp2
-  return (Variable Boolean 0 val)
+  return (Variable Boolean 0 val True)
 
 
 --Menor que. Devuelve tipo Boolean y True si cumple la relación.
@@ -193,7 +175,7 @@ lesser (Less l r) = do
   exp1 <- runExpress l
   exp2 <- runExpress r
   let val = num exp1 < num exp2
-  return (Variable Boolean 0 val)
+  return (Variable Boolean 0 val True)
 
 
 --Distinto de. Devuelve tipo Boolean y True si cumple la relación.
@@ -204,7 +186,7 @@ notEq (Neq l r) = do
   let val = case t exp1 of 
               Number -> num exp1 /= num exp2
               Boolean -> bool exp1 /= bool exp2
-  return (Variable Boolean 0 val)
+  return (Variable Boolean 0 val True)
 
 
 --Distinto de. Devuelve tipo Boolean y True si cumple la relación.
@@ -215,7 +197,7 @@ equal (Equal l r) = do
   let val = case t exp1 of 
               Number -> num exp1 == num exp2
               Boolean -> bool exp1 == bool exp2
-  return (Variable Boolean 0 val)
+  return (Variable Boolean 0 val True)
 
 
 --Negativo. Devuelve tipo Number y el valor.
@@ -223,7 +205,7 @@ negat :: Exp -> RunMonad Variable
 negat e = do
   var <- runExpress e
   let val = - num var
-  return (Variable Number val False)
+  return (Variable Number val False True)
 
 
 --Negación. Devuelve tipo Boolean y el valor.
@@ -231,7 +213,7 @@ nega :: Exp -> RunMonad Variable
 nega (ENot  e) = do
   var <- runExpress e
   let val = not $ bool var
-  return (Variable Boolean 0 val)
+  return (Variable Boolean 0 val True)
 
 
 --Identificadores. Devuelve el tipo y el valor.
@@ -247,19 +229,19 @@ identifier (TIdent p id) = do
 --Constante True. Devuelve tipo Boolean y True.
 constTrue :: Token -> RunMonad Variable
 constTrue (TTrue _) = do
-  return (Variable Boolean 0 True)
+  return (Variable Boolean 0 True False)
 
 
 --Constante False. Devuelve tipo Boolean y False.
 constFalse :: Token -> RunMonad Variable
 constFalse (TFalse _) = do
-  return (Variable Boolean 0 False)
+  return (Variable Boolean 0 False False)
 
 
 --Número. Devuelve tipo Number y el valor.
 numb :: Token -> RunMonad Variable
 numb (TNum _ n) = do
-  return (Variable Number n False)
+  return (Variable Number n False False)
 
 
 -- Instruccion, llamada a una funcion
@@ -268,4 +250,4 @@ funcCall (FCall (TIdent p id) exps) = do
   scope <- get
   let funcId = findFunc (func scope) id
   let val = fromJust funcId
-  return (Variable (ret val) 1 False)                           -- Retorna el valor de la funcion
+  return (Variable (ret val) 1 False False)                           -- Retorna el valor de la funcion

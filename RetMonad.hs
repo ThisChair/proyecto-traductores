@@ -33,8 +33,6 @@ data Function = Function { ret :: Type              -- tipo de valor de retorno 
 -- tipo de dato del monad 
 data Scope = Scope  { sym     :: SymTable           -- tabla de simbolos
                     , func    :: SymFunc            -- tabla de las funciones
-                    , height  :: Int                -- altura del arbol
-                    , count   :: [Int]              -- contador que enumera los alcances
                     , typeRet :: Type               -- tipo de retorno
                     , funName :: String             -- nombre de la funcion
                     , typeSc  :: TypeScope          -- tipo de alcance, opciones: una funcion, do, for, forby
@@ -48,8 +46,6 @@ type RetMonad = State Scope
 initialState =  Scope
                       []
                       M.empty
-                      0
-                      [0]
                       Void
                       ""
                       IsFun
@@ -62,7 +58,7 @@ initialState =  Scope
 -- hacer modify (modifyTable f) donde f es una funcion
 -- que toma la tabla de simbolos actual y devuelve otra tabla de simbolos
 modifyTable :: (SymTable -> SymTable) -> Scope -> Scope
-modifyTable f (Scope symTable x y z v w ts fr)    = Scope (f symTable) x y z v w ts fr
+modifyTable f (Scope symTable x v w ts fr)    = Scope (f symTable) x v w ts fr
 
 
 -- Usar cuando se tenga un nuevo alcance, agrega una nueva tabla de simbolos
@@ -79,47 +75,20 @@ modifyScope f (s:xs) = (f s : xs)
 -- Cambiar el nombre de la funcion de scope
 -- Recibe un string que sera el nuevo nombre de la funcion
 changeName :: String -> Scope -> Scope
-changeName s (Scope x y z v w _ ts fr) = Scope x y z v w s ts fr
+changeName s (Scope x y w _ ts fr) = Scope x y w s ts fr
 
 -- Cambiar el tipo de retorno de la funcion
 -- Recibe el nuevo tipo de retorno
 changeTypeRet :: Type -> Scope -> Scope
-changeTypeRet tr (Scope x y z v _ w ts fr) = Scope x y z v tr w ts fr
+changeTypeRet tr (Scope x y _ w ts fr) = Scope x y tr w ts fr
 
 -- Cambiar el tipo de alcance del scope
 changeTypeScope :: TypeScope -> Scope -> Scope
-changeTypeScope ts (Scope x y z v tr w _ fr) = Scope x y z v tr w ts fr
+changeTypeScope ts (Scope x y tr w _ fr) = Scope x y tr w ts fr
 
 -- Cambia si se ha encontrado una instrucción de return
 changeFoundR :: Bool -> Scope -> Scope
-changeFoundR found (Scope x y z v tr w ts _) = Scope x y z v tr w ts found
-
--- Modificar altura: recibe una funcion que sera aplicada a la altura
--- hacer modify(modifyHeight f) donde f es la funcion que modificara la altura
-modifyHeight :: (Int -> Int) -> Scope -> Scope
-modifyHeight f (Scope x y h z v w ts fr) = Scope x y (f h) z v w ts fr
-
--- Modificar contador de alcances: recibe una funcion que sera aplicada al contador
--- hacer modify(modifyCount f) donde f es la funcionn que modificara el contador
-modifyCounter :: ([Int] -> [Int]) -> Scope -> Scope
-modifyCounter f (Scope x y z c v w ts fr) = Scope x y z (f c) v w ts fr
-
--- Aumentar contador en uno, cuando se encuentra un alcance se debe aumentar en uno, el
--- ultimo nivel del contador. No puede ser llamado cuando la lista esta vacia
-plusOne :: [Int] -> [Int]
-plusOne (x:xs) = (x+1):xs
-
-
--- Agregar nuevo contador, cuando se entra en un nuevo alcance se crea un nuevo nivel
--- en el arbol, por lo que se debe agregar un nuevo valor en la lista contador, que se
--- inicializara en 0
-addCounter :: [Int] -> [Int]
-addCounter l = (0 : l)
-
--- Eliminar ultimo contador, cuando se termina un alcance, no se debe llamar cuando la lista
--- esta vacia
-eraseCounter :: [Int] -> [Int]
-eraseCounter (x:xs) = xs
+changeFoundR found (Scope x y tr w ts _) = Scope x y tr w ts found
 
 -- Elimina el ultimo alcance
 eraseLastScope :: SymTable -> SymTable

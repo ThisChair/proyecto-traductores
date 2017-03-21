@@ -30,13 +30,11 @@ start (Init funs is) = do
   mapM_ function funs
   modify(changeName "_noFunction")                            -- Cambiar el nombre de la funcion
   modify(changeTypeRet Void)                                  -- Cambiar el tipo de retorno
-  modify(modifyCounter plusOne)                               -- Agregar 1 al contador
   modify(changeTypeScope IsProgram)                           -- Cambiar el tipo de alcance
   modify(modifyTable  addTable)                               -- Añadir una nueva tabla de simbolos
   scopeFinal <- get                                           -- Obtener el alcance final
-  modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is
-  where modifyFuncT f (Scope x symFunc y z v w ts fr)  = Scope x (f symFunc) y z v w ts fr
+  where modifyFuncT f (Scope x symFunc v w ts fr)  = Scope x (f symFunc) v w ts fr
 
 
 -- Recorre las funciones iniciales
@@ -56,20 +54,17 @@ function input = do
   modify(changeName id)                                                         -- Cambiar el nombre del identificador de la funcion
   modify(changeTypeRet typeF)                                                   -- Cambiar el tipo de retorno de la funcion
   modify(changeTypeScope IsFun)                                                 -- Cambiar el tipo de alcance
-  modify(modifyCounter $ plusOne)                                               -- Sumar uno al ultimo contador
   modify(modifyFuncT $ M.insert id (Function typeF types))                      -- Agregar el identificador a la tabla de simbolos
   modify(modifyTable  addTable)                                                 -- Añadir una nueva tabla de simbolos
   modify(modifyTable $ modifyScope $ addSyms ids types)                         -- Agregar los parametros en la tabla de simbolos
   modify(changeFoundR False)
   scopeFinal <- get
-  modify(modifyCounter addCounter)                                              -- Agregar un nuevo contador para el siguiente nivel del arbol
   P.mapM_ instruction is                                                        -- Ejecutar las instrucciones de la funcion
   scopeCheck <- get
   case (foundR scopeCheck) of
     False -> errNoRet input
     True -> return()
   modify(modifyTable eraseLastScope)                                            -- Eliminar ultimo alcance
-  modify(modifyCounter eraseCounter)                                            -- Eliminar ultimo contador
   where (identifier, pars, is, typeF)               = getAll input
         getAll (DFun   id' pars' is')               = (id', pars', is', Void)
         getAll (DFunR  id' pars' (TBoolean _) is')  = (id', pars', is', Boolean)
@@ -80,7 +75,7 @@ function input = do
         getId   (Par _ (TIdent _ id''))             = id''                        -- funcion para obtener el identificador de un parametro
         types                                       = P.map getType pars          -- obtener los tipos de los parametros
         ids                                         = P.map getId   pars          -- obtener los identificadores de los parametros
-        modifyFuncT f (Scope x symFunc y z v w ts fr)  = Scope x (f symFunc) y z v w ts fr
+        modifyFuncT f (Scope x symFunc v w ts fr)  = Scope x (f symFunc) v w ts fr
         addSyms [] [] symT                          = symT
         addSyms (x:xs) (y:ys) symT                  = M.insert  x y (addSyms xs ys symT)
 
@@ -118,17 +113,12 @@ dec (Dec2 typeD (TIdent p id) exp) = do                                         
 -- Recorrer un bloque with do
 withDo :: Do -> RetMonad ()
 withDo (Do decs is) = do
-  modify(modifyHeight (+1))                                                     -- Sumar uno a la altura
-  modify(modifyCounter plusOne)                                                 -- Incrementar en uno el contador actual
   modify(modifyTable addTable)                                                  -- Crear un nuevo alcance
   modify(changeTypeScope IsWithDo)                                              -- Cambiar el tipo de alcance
   P.mapM_ dec decs                                                              -- Verificar que las declaraciones sean correctas
   scopeFinal <- get
-  modify(modifyCounter addCounter)                                              -- Agregar nuevo contador
   P.mapM_  instruction is                                                       -- RECORRER INSTRUCCIONES
   modify(modifyTable eraseLastScope)                                            -- Eliminar tabla agregada
-  modify(modifyCounter eraseCounter)                                            -- Eliminar ultimo contador
-  modify(modifyHeight (+(-1)))                                                  -- Restar uno a la altura
 
 
 -- Recorrer un bloque IF
@@ -190,15 +180,10 @@ for (For (TIdent p id) exp1 exp2 is) = do
   -- Si todo esta bien, entonces continuar
   modify(modifyTable addTable)                                -- agregar nuevo alcance
   modify(insertSym id val1)                                   -- agregar el contador a la tabla de simbolos
-  modify(modifyCounter plusOne)                               -- Incrementar en uno el contador actual
-  modify(modifyHeight (+1))                                   -- Sumar uno a la altura
   modify(changeTypeScope IsFor)                               -- Cambiar el tipo de alcance
   scopeFinal <- get
-  modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is                                      -- Recorrer instrucciones
   modify(modifyTable eraseLastScope)                          -- Eliminar tabla agregada
-  modify(modifyCounter eraseCounter)                          -- Eliminar contador
-  modify(modifyHeight (+(-1)))                                -- restar uno a la altura
 
 
 -- Recorrer un bloque forBy
@@ -228,15 +213,10 @@ forBy (ForBy (TIdent p id) exp1 exp2 exp3 is) = do
   -- Si todo esta bien, entonces continuar
   modify(modifyTable addTable)                                -- agregar nuevo alcance
   modify(insertSym id val1)                                   -- agregar el contador a la tabla de simbolos
-  modify(modifyCounter plusOne)                               -- Incrementar en uno el contador actual
-  modify(modifyHeight (+1))                                   -- Sumar uno a la altura
   modify(changeTypeScope IsForBy)                             -- Cambiar el tipo de alcance
   scopeFinal <- get                                           -- Obtener el alcance final
-  modify(modifyCounter addCounter)                            -- Agregar nuevo contador
   P.mapM_ instruction is                                      -- Recorrer instrucciones
   modify(modifyTable eraseLastScope)                          -- Eliminar tabla agregada
-  modify(modifyCounter eraseCounter)                          -- Eliminar contador
-  modify(modifyHeight (+(-1)))                                -- restar uno a la altura
   
 -- Ejecutar un bloque
 block :: Block -> RetMonad ()
