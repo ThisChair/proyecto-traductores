@@ -9,7 +9,6 @@ import Data.Sequence as S
 import Data.Map as M
 import Data.Set as Set
 import Prelude as P
-import Data.Maybe
 
 --Obtener fila y columna en la que empieza una expresión.
 retrievePos :: Exp -> (Int,Int)

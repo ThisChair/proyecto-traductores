@@ -10,6 +10,7 @@ import Data.Map as M
 import Data.Set as Set
 import Prelude as P
 import Data.Maybe
+import RunError
 
 --Maneja las expresiones
 runExpress :: Exp -> RunMonad Variable
@@ -70,7 +71,7 @@ divi (Div l r) = do
   exp1 <- runExpress l
   exp2 <- runExpress r
   case num exp2 of
-    0 -> do return() -- Error ):
+    0 -> do errDivZero r
     _ -> do return()
   let val = num exp1 / num exp2
   return (Variable Number val False True)
@@ -82,7 +83,7 @@ rest (Mod l r) = do
   exp1 <- runExpress l
   exp2 <- runExpress r
   case num exp2 of
-    0 -> do return() -- Error ):
+    0 -> do errDivZero r
     _ -> do return()
   let dob1 = num exp1
   let dob2 = num exp2
@@ -98,7 +99,7 @@ diviI (DivI l r) = do
   exp1 <- runExpress l
   exp2 <- runExpress r
   case num exp2 of
-    0 -> do return() -- Error ):
+    0 -> do errDivZero r
     _ -> do return()
   let dob1 = num exp1
   let dob2 = num exp2
@@ -114,7 +115,7 @@ restI (ModI l r) = do
   exp1 <- runExpress l
   exp2 <- runExpress r
   case num exp2 of
-    0 -> do return() -- Error ):
+    0 -> do errDivZero r
     _ -> do return()
   let dob1 = num exp1
   let dob2 = num exp2

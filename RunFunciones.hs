@@ -11,7 +11,7 @@ import Prelude as P
 import Data.Maybe
 import RunMonad
 import RunExpress
-
+import RunError
 
 
 -- Inicia el recorrido del arbol
@@ -201,7 +201,6 @@ printP (PExp exp)               = do
 writePr :: Write -> RunMonad ()
 writePr (Write ps) = do
   mapM_ printP ps
-  liftIO . putStr $ ""
 
 -- instruccion writeL
 writeLPr :: WriteL -> RunMonad ()
