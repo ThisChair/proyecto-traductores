@@ -51,7 +51,7 @@ data Scope = Scope  { sym     :: SymTable           -- tabla de simbolos
                     }
                     -- deriving (Show)
                 
-type RunMonad = RWS String (S.Seq(Scope)) Scope
+type RunMonad = RWST String (S.Seq(Scope)) Scope IO
 
 -- Estado inicial del Monad
 initialState =  Scope

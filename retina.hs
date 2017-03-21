@@ -11,15 +11,15 @@ import Parser
 import TokenInfo
 import Tree
 import Control.Monad.State.Strict
-import Control.Monad.RWS.Strict
+import Control.Monad.RWS
 import Prelude as P
-import RetMonad
-import Funciones
+import RetMonad as RM
+import Funciones as Fun
 import Data.Sequence as S
 import Data.Foldable as F
 import Control.DeepSeq
 import Control.Exception
-import RunMonad as RM
+import RunMonad as Run
 import RunFunciones as RF
 
 -- Obtener archivo con el formato correcto, si no es el archivo correcto
@@ -49,8 +49,8 @@ main = do
       False -> do P.mapM_ putStrLn $ P.map show_token inv
       True  -> do 
                 let parse   = parseRet toks
-                let context = evalState (start parse) initialState
+                let context = evalState (Fun.start parse) RM.initialState
                 fs <- evaluate $ force context
-                let (s, w) = execRWS (RF.start parse) "" RM.initialState
-                putStr $ "Nice"
+                (s, w) <- execRWST (RF.start parse) "" Run.initialState
+                putStr $ ""
       

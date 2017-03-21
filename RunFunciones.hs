@@ -135,8 +135,8 @@ for (For (TIdent p id) exp1 exp2 is) = do
   val1 <- runExpress exp1                                        -- Calcular expresión inicial
   val2 <- runExpress exp2                                        -- Calcular expresión final
 
-  let fVal1 = (Variable Number (floor (num val1)) False)
-  let fVal2 = (Variable Number (floor (num val2)) False)
+  let fVal1 = (Variable Number (fromInteger $ floor (num val1)) False)
+  let fVal2 = (Variable Number (fromInteger $ floor (num val2)) False)
   -- Si todo esta bien, entonces continuar
   modify(modifyTable addTable)                                -- agregar nuevo alcance
   modify(insertSym id fVal1)                                   -- agregar el contador a la tabla de simbolos
@@ -190,12 +190,12 @@ readId (ReadId (TIdent p id)) = do
 
 -- Imprimibles
 printP :: Print -> RunMonad ()
-printP (PToken (TString _ str)) = do return ()
+printP (PToken (TString _ str)) = do liftIO . putStr $ str
 printP (PExp exp)               = do
-    val <- runExpress exp                                -- Calcular valor de la expresion
-    case (t val) of
-      Number  -> do return ()
-      Boolean -> do return ()
+  val <- runExpress exp                                -- Calcular valor de la expresion
+  case (t val) of
+    Number  -> do liftIO . putStr $ show (num val)
+    Boolean -> do liftIO . putStr $ show (bool val)
 
 -- instruccion write
 writePr :: Write -> RunMonad ()
@@ -206,6 +206,7 @@ writePr (Write ps) = do
 writeLPr :: WriteL -> RunMonad ()
 writeLPr (WriteL ps) = do
   mapM_ printP ps
+  liftIO . putStrLn $ ""
 
 
 -- instruccion de asignacion
