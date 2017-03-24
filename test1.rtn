@@ -1,0 +1,47 @@
+# Probar bloques.
+func plus(number op1, number op2) -> number
+begin
+    return op1 + op2;
+end;
+func avanzada(boolean b, number n)
+begin
+    if b then
+        forward(50 + n);
+    else
+        forward(plus(3,4));
+    end;
+end;
+program
+  with
+      number i;
+      number j = 78 + plus(4,2); 
+  do
+      i = plus(3,2);
+      writeln i;
+        with
+          boolean i;
+        do
+          i = true == false;
+          while false do
+            avanzada(i, plus(j,3));
+          end;
+          writeln "Primer ciclo:";
+          for j from 1.5 to 4.5 do
+            write j, " ";
+          end;
+          writeln "\n\n\n";
+          writeln "Segundo ciclo:";
+          for j from 1.5 to 4.5 by 0.1 do
+            write j, " ";
+          end;
+          repeat 5 times forward(3); end;
+        end;
+      writeln "\n\n\n";
+    #  writeln "Introduzca un número: ";
+    #  read j;
+    #  writeln j;
+      j = ((5 + 5)/2) - 5;
+      writeln j;
+      j = 5/j;
+  end;
+end;

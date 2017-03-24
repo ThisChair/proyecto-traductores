@@ -10,14 +10,17 @@ import Data.Char
 import Parser
 import TokenInfo
 import Tree
+import Control.Monad.State.Strict
 import Control.Monad.RWS
 import Prelude as P
-import RetMonad
-import Funciones
+import RetMonad as RM
+import Funciones as Fun
 import Data.Sequence as S
 import Data.Foldable as F
-import Output
-
+import Control.DeepSeq
+import Control.Exception
+import RunMonad as Run
+import RunFunciones as RF
 
 -- Obtener archivo con el formato correcto, si no es el archivo correcto
 -- se obtiene un error
@@ -33,6 +36,7 @@ filePath (x:_) = case P.reverse x of  ('n':'t':'r':'.':_) -> x
 -- sintaxis, si es correcta imprime el arbol, en caso contrario se obtiene un mensaje
 -- de error
 
+
 main::IO ()
 main = do
   args <- getArgs
@@ -45,10 +49,8 @@ main = do
       False -> do P.mapM_ putStrLn $ P.map show_token inv
       True  -> do 
                 let parse   = parseRet toks
-                let (s, w)  = execRWS (start parse) "" initialState
-                let out1    = F.toList w
-                let out     = addN out1 
-                P.mapM_ putStr $ map show out
-                where addN (x:[])   = [Out x True]
-                      addN (x:y:xs) = (Out x (if (height x) < (height y) then False else True)) : (addN (y:xs))
+                let context = evalState (Fun.start parse) RM.initialState
+                fs <- evaluate $ force context
+                (s, w) <- execRWST (RF.start parse) "" Run.initialState
+                putStr $ ""
       
