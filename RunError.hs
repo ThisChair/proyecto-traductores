@@ -23,3 +23,7 @@ errInmutable (TIdent (AlexPn _ l c) id) = error $ "Error en la fila " ++ show l 
 --Error relativo a la lectura incorrecta en instrucción Read.
 errRead :: Token -> Type -> a
 errRead (TIdent (AlexPn _ l c) id) t = error $ "Error en la fila " ++ show l ++ " cerca de la columna " ++ show c ++ ": Lectura incorrecta para la variable '" ++ id ++ "' de tipo " ++ show t ++ " en instrucción read."
+
+--Error relativo a no llegar a un valor de retorno en una función que lo espera.
+errNoRet :: Token -> a
+errNoRet (TIdent (AlexPn _ l c) id) = error $ "Error en la fila " ++ show l ++ " cerca de la columna " ++ show c ++ ": Se esperaba un valor de retorno, pero la función '" ++ id ++ "' no devuelve ninguno."

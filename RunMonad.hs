@@ -45,7 +45,7 @@ data Scope = Scope  { sym     :: SymTable           -- tabla de simbolos
                     , typeRet :: Type               -- tipo de retorno
                     , funName :: String             -- nombre de la funcion
                     , typeSc  :: TypeScope          -- tipo de alcance, opciones: una funcion, do, for, forby
-                    , foundR  :: Bool               -- Encontró un return
+                    , foundR  :: Maybe Variable     -- Encontró un return
                     }
                 
 type RunMonad = RWST String (S.Seq(Scope)) Scope IO
@@ -57,7 +57,7 @@ initialState =  Scope
                       Void
                       ""
                       IsFun
-                      False
+                      Nothing
 
 
 -----------------------------  FUNCIONES GLOBALES PARA MODIFICAR Scope ---------------------------------
@@ -95,7 +95,7 @@ changeTypeScope :: TypeScope -> Scope -> Scope
 changeTypeScope ts (Scope x y tr w _ fr) = Scope x y tr w ts fr
 
 -- Cambia si se ha encontrado una instrucción de return
-changeFoundR :: Bool -> Scope -> Scope
+changeFoundR :: Maybe Variable -> Scope -> Scope
 changeFoundR found (Scope x y tr w ts _) = Scope x y tr w ts found
 
 -- Elimina el ultimo alcance

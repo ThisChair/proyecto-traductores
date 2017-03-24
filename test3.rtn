@@ -1,0 +1,21 @@
+# Prueba de recursión 2.
+func fibonacci(number n) -> number
+begin
+    if n == 0 then 
+        return 0;
+    end;
+    if n == 1 then 
+        return 1;
+    end;
+    if n > 1 then 
+        return fibonacci(n-1) + fibonacci(n-2);
+    end;
+end;
+program
+    with
+        number i;
+    do
+        i = fibonacci(26);
+        writeln i;
+    end;
+end;

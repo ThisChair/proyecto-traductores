@@ -244,6 +244,21 @@ numb :: Token -> RunMonad Variable
 numb (TNum _ n) = do
   return (Variable Number n False False)
 
+--Función para añadir los parámetros y sus valores al alcance.
+addPars :: [String] -> [Exp] -> RunMonad Variable
+addPars [] [] = do return nullVariable
+addPars (id:ids) (e:es) = do
+  val <- runExpress e
+  scope <- get
+  case (t val) of
+    Number -> do 
+      modify(insertSym id (Variable Number (num val) False True))
+      a <- addPars ids es
+      return a
+    Boolean -> do 
+      modify(insertSym id (Variable Boolean 0 (bool val) True))
+      a <- addPars ids es
+      return a
 
 -- Instruccion, llamada a una funcion
 funcCall :: FCall -> RunMonad Variable
@@ -251,4 +266,15 @@ funcCall (FCall (TIdent p id) exps) = do
   scope <- get
   let funcId = findFunc (func scope) id
   let val = fromJust funcId
-  return (Variable (ret val) 1 False False)                           -- Retorna el valor de la funcion
+  modify(changeName id)                                               -- Cambiar el nombre del identificador de la funcion
+  modify(changeTypeScope IsFun)                                       -- Cambiar el tipo de alcance
+  modify(modifyTable  addTable)                                       -- Añadir una nueva tabla de simbolos
+  a <- addPars (paramId val) exps                                     -- Agregar los parametros en la tabla de simbolos
+  modify(changeFoundR Nothing)                                        -- No se ha encontrado valor de retorno.
+  P.mapM_ instruction (instructions val)
+  scopeR <- get
+  case (foundR scopeR) of
+    Nothing -> do return () -- Error ):
+    Just x -> do
+      modify(modifyTable eraseLastScope)
+      return x

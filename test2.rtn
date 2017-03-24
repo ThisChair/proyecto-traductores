@@ -1,0 +1,21 @@
+# Prueba de recursión.
+func fact(number n) -> number
+begin
+    if n == 0 then 
+        return 1;
+    end;
+    if n == 1 then 
+        return 1;
+    end;
+    if n > 1 then 
+        return n*fact(n-1);
+    end;
+end;
+program
+    with
+        number i;
+    do
+        i = fact(1000);
+        writeln i;
+    end;
+end;
