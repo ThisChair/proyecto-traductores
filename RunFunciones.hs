@@ -11,6 +11,7 @@ import Prelude as P
 import Data.Maybe
 import RunMonad
 import RunError
+import System.IO
 
 
 -- Inicia el recorrido del arbol
@@ -200,6 +201,7 @@ printP (PExp exp)               = do
 writePr :: Write -> RunMonad ()
 writePr (Write ps) = do
   mapM_ printP ps
+  liftIO (putStr "" >> hFlush stdout)
 
 -- instruccion writeL
 writeLPr :: WriteL -> RunMonad ()
@@ -512,19 +514,19 @@ identifier (TIdent p id) = do
 --Constante True. Devuelve tipo Boolean y True.
 constTrue :: Token -> RunMonad Variable
 constTrue (TTrue _) = do
-  return (Variable Boolean 0 True False)
+  return (Variable Boolean 0 True True)
 
 
 --Constante False. Devuelve tipo Boolean y False.
 constFalse :: Token -> RunMonad Variable
 constFalse (TFalse _) = do
-  return (Variable Boolean 0 False False)
+  return (Variable Boolean 0 False True)
 
 
 --Número. Devuelve tipo Number y el valor.
 numb :: Token -> RunMonad Variable
 numb (TNum _ n) = do
-  return (Variable Number n False False)
+  return (Variable Number n False True)
 
 --Función para añadir los parámetros y sus valores al alcance.
 addPars :: [String] -> [Exp] -> RunMonad Variable
