@@ -1,19 +1,9 @@
-module Main(main) where
+module Drawing where
 import System.IO
 import Control.Monad.State
 
 
--------------------------------- Tipo de Datos de Instrucciones -----------------------
 
-data Instruction =    Home 
-                    | OpenEye
-                    | CloseEye
-                    | Forward     Double
-                    | Backward    Double
-                    | RotateL     Double
-                    | RotateR     Double
-                    | Setposicion Double Double
-                    | ArcD        Double Double
 
 ----------------------------------------- Tipos de Datos------------------------------
 
@@ -126,20 +116,3 @@ draw :: [Line] -> [String]
 draw lines = reverse [[if (isOn (x, y) lines) then '1' else '0' | x<-[-500..500] ] | y<-[-500..500] ]
 
 
--------------------------  Monad para leer las instrucciones y calcular posicion ---------
-
-
-drawing :: [Instruction] -> State Point ()
-drawing ins = do return ()
-
--- Trazos a testear
-input :: [Line]
-input = [ Left  (Arc (Point 100     (-100)) 200 60  (-100))
-        , Right (Seg (Point 200     200)    400     (-120))
-        , Left  (Arc (Point (-50)   30)     150 360 (-60))
-        , Right (Seg (Point (-100)  (-300)) 500     90)
-        , Left  (Arc (Point (-500)   (-500))   350 (-90) 0)
-        ]
-
-main = do putStrLn "P1\n1001\n1001\n"
-          mapM_ putStrLn $ draw input
