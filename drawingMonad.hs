@@ -15,16 +15,20 @@ data Instruction =    InsHome
                     | InsB  Backward
                     | InsRL RotateL
                     | InsRR RotateR
-                    | InsS  SetPosicion
+                    | InsS  SetPosition
                     | InsA  ArcD
 
 data Forward      = Forward     Double
 data Backward     = Backward    Double
 data RotateL      = RotateL     Double
 data RotateR      = RotateR     Double
-data SetPosicion  = SetPosicion Double Double
+data SetPosition  = SetPosition Double Double
 data ArcD         = ArcD        Double Double     -- Grados y Radio
 
+-- Estado de la Tortuga
+-- position:  posicion actual de la tortuga
+-- angle:     direccion de la tortuga
+-- opened:    
 data TurtleState = TurtleState  { position :: Point
                                 , angle    :: Double
                                 , opened   :: Bool }
@@ -32,10 +36,6 @@ data TurtleState = TurtleState  { position :: Point
 type DrawMonad = RWS String (S.Seq(Line)) TurtleState
 
 ------------- Funciones para manejar el State --------------------
-
--- Funcion para modificar la posicion
-modifyPosition :: (Point -> Point) -> TurtleState -> TurtleState
-modifyPosition f (TurtleState pos dir b) = TurtleState (f pos) dir b
 
 -- Funcion para configurar el ojo de la tortuga
 setOpenEye :: Bool -> TurtleState -> TurtleState
@@ -51,11 +51,12 @@ modifyDir f (TurtleState pos dir b) = TurtleState pos (f dir) b
 
 -- Funcion para cambiar la posicion de la tortuga
 move :: Double -> TurtleState -> TurtleState
-move len (TurtleState pos al b) = TurtleState (pos + (Point (len*cos(al)) (len*sin(al)))) al b
+move len (TurtleState pos al b) = TurtleState (pos + (Point (len* (cos $ radians al) ) (len*(sin $ radians al)))) al b
+                                    where radians x = x*pi/180
 
 
 
------------------------------------ Funciones del Monad ---------------------------------------------------
+----------------------------------- Funciones de dibujo y movimiento ---------------------------------------------------
 -- Funcion forward
 forward :: Forward -> DrawMonad ()
 forward (Forward len) = do  turtle  <- get                                                -- Obtener el estado de la tortuga
@@ -82,15 +83,15 @@ addArc (ArcD radio alpha) = do  turtle  <- get
 
 --- Ejecutar una instruccion de dibujo
 instructionD :: Instruction -> DrawMonad ()
-instructionD InsHome                    = do modify(setPosition (Point 0 0))
-instructionD (InsOpen)                  = do modify(setOpenEye True)
-instructionD (InsClose)                 = do modify(setOpenEye False)
-instructionD (InsF  insForward)         = do forward   insForward
-instructionD (InsB  insBackward)        = do backward  insBackward                                          
-instructionD (InsRL (RotateL x))        = do modify(modifyDir (rotate x))
-instructionD (InsRR (RotateR x))        = do modify(modifyDir (rotate (-x)))
-instructionD (InsS  (SetPosicion x y))  = do modify((setPosition (Point x y)))
-instructionD (InsA  arc)                = do addArc arc
+instructionD InsHome                    = do modify(setPosition (Point 0 0))          -- Devuelve a la tortuga a la posicion inicial
+instructionD InsOpen                    = do modify(setOpenEye True)                  -- Todo el movimiento es marcado
+instructionD InsClose                   = do modify(setOpenEye False)                 -- Ningun movimiento es marcado
+instructionD (InsF  insForward)         = do forward   insForward                     -- Avanza
+instructionD (InsB  insBackward)        = do backward  insBackward                    -- Retrocede             
+instructionD (InsRL (RotateL x))        = do modify(modifyDir (rotate   x ))          -- Rota a la izquierda
+instructionD (InsRR (RotateR x))        = do modify(modifyDir (rotate (-x)))          -- Rota a la derecha
+instructionD (InsS  (SetPosition x y))  = do modify((setPosition (Point x y)))        -- Modifica la posicion de la tortuga
+instructionD (InsA  arc)                = do addArc arc                               -- Dibuja un arco
 
 
 -- Estado inicial de la tortuga
@@ -98,9 +99,31 @@ turtleInitial :: TurtleState
 turtleInitial = TurtleState (Point 0 0) 90 True
 
 
--- Obtner el ouput
-getBits :: [Instruction] -> [String]
-getBits ls = draw $ F.toList lines
-    where (w, lines) = execRWS (RWS.mapM_ instructionD ls) "" turtleInitial
+-- Obtener el ouput
+-- file: es el nombre del archivo que se creara
+-- ls: Lista de instrucciones de dibujo que deben ser procesadas
+-- Devuelve una lista de String, crea la imagen correspondiente
+-- a la lista de instrucciones en un archivo de nombre file.pbm
+image :: FilePath -> [Instruction] -> IO ()
+image file ls = do  let (s, lines) = execRWS (RWS.mapM_ instructionD ls) "" turtleInitial
+                    let fileOut = file ++ ".pbm"
+                    writeFile fileOut "P1\n1001\n1001\n"
+                    appendFile fileOut (unlines $ draw $ F.toList lines)
 
-main = do putStrLn "OK"
+
+
+------------- PRUEBA, ELIMINAR PARA LA ENTREGA ---------------------
+-- Instructiones de prueba
+prueba :: [Instruction]
+prueba =  [ InsF (Forward 100),
+            InsRR (RotateR 90),
+            InsF (Forward 100), 
+            InsRR (RotateR 90),
+            InsF (Forward 100),
+            InsRR (RotateR 90),
+            InsF (Forward 100),
+            InsRR (RotateR 135),
+            InsF  (Forward 141)
+          ] 
+
+main = image "prueba" prueba
