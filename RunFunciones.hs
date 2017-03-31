@@ -15,18 +15,19 @@ import System.IO
 import DrawingMonad
 
 
+
 -- Inicia el recorrido del arbol
 start :: Init -> RunMonad ()
 start (Init funs is) = do
-  modify(modifyFuncT $ M.insert "home" (Function Void [] [] []))
-  modify(modifyFuncT $ M.insert "openeye" (Function Void [] [] []))
-  modify(modifyFuncT $ M.insert "closeeye" (Function Void [] [] []))
-  modify(modifyFuncT $ M.insert "forward" (Function Void ["n"] [Number] []))
-  modify(modifyFuncT $ M.insert "backward" (Function Void ["n"] [Number] []))
-  modify(modifyFuncT $ M.insert "rotatel" (Function Void ["n"] [Number] []))
-  modify(modifyFuncT $ M.insert "rotater" (Function Void ["n"] [Number] []))
-  modify(modifyFuncT $ M.insert "setposition" (Function Void ["x","y"] [Number,Number] []))
-  modify(modifyFuncT $ M.insert "arc" (Function Void ["n","r"] [Number,Number] []))
+  modify(modifyFuncT $ M.insert "home" (Function Void [] [] [IHome]))
+  modify(modifyFuncT $ M.insert "openeye" (Function Void [] [] [IOpen]))
+  modify(modifyFuncT $ M.insert "closeeye" (Function Void [] [] [IClose]))
+  modify(modifyFuncT $ M.insert "forward" (Function Void ["n"] [Number] [IForward]))
+  modify(modifyFuncT $ M.insert "backward" (Function Void ["n"] [Number] [IBackward]))
+  modify(modifyFuncT $ M.insert "rotatel" (Function Void ["n"] [Number] [IRotateL]))
+  modify(modifyFuncT $ M.insert "rotater" (Function Void ["n"] [Number] [IRotateR]))
+  modify(modifyFuncT $ M.insert "setposition" (Function Void ["x","y"] [Number,Number] [ISetPosition]))
+  modify(modifyFuncT $ M.insert "arc" (Function Void ["n","r"] [Number,Number] [IArcD]))
   mapM_ function funs
   modify(changeName "_noFunction")                            -- Cambiar el nombre de la funcion
   modify(changeTypeRet Void)                                  -- Cambiar el tipo de retorno
@@ -46,8 +47,6 @@ function input = do
   modify(changeTypeRet typeF)                                                   -- Cambiar el tipo de retorno de la funcion
   modify(changeTypeScope IsFun)                                                 -- Cambiar el tipo de alcance
   modify(modifyFuncT $ M.insert id (Function typeF ids types is))               -- Agregar el identificador a la tabla de simbolos
-  scopeFinal <- get
-  modify(modifyTable eraseLastScope)                                            -- Eliminar ultimo alcance
   where (identifier, pars, is, typeF)               = getAll input
         getAll (DFun   id' pars' is')               = (id', pars', is', Void)
         getAll (DFunR  id' pars' (TBoolean _) is')  = (id', pars', is', Boolean)
@@ -568,24 +567,40 @@ addPars (id:ids) (e:es) = do
       a <- addPars ids es
       return a
 
+fInstruction :: Ins -> RunMonad ()
+fInstruction ins = do
+  scope <- get
+  case (foundR scope) of
+    Nothing -> do instruction ins
+    Just _ -> do return ()
+
 -- Instruccion, llamada a una funcion
 funcCall :: FCall -> RunMonad Variable
 funcCall (FCall (TIdent p id) exps) = do
   scope <- get
   let funcId = findFunc (func scope) id
   let val = fromJust funcId
+  modify(changeName id)                                               -- Cambiar el nombre del identificador de la funcion
+  modify(changeTypeRet (ret val)) 
+  modify(changeTypeScope IsFun)                                       -- Cambiar el tipo de alcance
+  modify(modifyTable  addTable)                                       -- Añadir una nueva tabla de simbolos
+  a <- addPars (paramId val) exps                                     -- Agregar los parametros en la tabla de simbolos
+  modify(changeFoundR Nothing)                                        -- No se ha encontrado valor de retorno.
+  P.mapM_ fInstruction (instructions val)
+  scopeR <- get
   case (ret val) of
-    Void -> do return nullVariable
+    Void -> do
+      modify(modifyTable eraseLastScope)
+      modify(changeName "_noFunction")                            -- Cambiar el nombre de la funcion
+      modify(changeTypeRet Void)                                  -- Cambiar el tipo de retorno
+      modify(changeTypeScope IsProgram)                           -- Cambiar el tipo de alcance
+      return nullVariable
     _ -> do
-      modify(changeName id)                                               -- Cambiar el nombre del identificador de la funcion
-      modify(changeTypeScope IsFun)                                       -- Cambiar el tipo de alcance
-      modify(modifyTable  addTable)                                       -- Añadir una nueva tabla de simbolos
-      a <- addPars (paramId val) exps                                     -- Agregar los parametros en la tabla de simbolos
-      modify(changeFoundR Nothing)                                        -- No se ha encontrado valor de retorno.
-      P.mapM_ instruction (instructions val)
-      scopeR <- get
       case (foundR scopeR) of
         Nothing -> do errNoRet (TIdent p id) -- Error ):
         Just x -> do
           modify(modifyTable eraseLastScope)
+          modify(changeName "_noFunction")                            -- Cambiar el nombre de la funcion
+          modify(changeTypeRet Void)                                  -- Cambiar el tipo de retorno
+          modify(changeTypeScope IsProgram)                           -- Cambiar el tipo de alcance
           return x

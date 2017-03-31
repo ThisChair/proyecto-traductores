@@ -1,0 +1,28 @@
+func circle(number radio)
+begin
+    writeln "radio: ", radio;
+    arc(360, radio);
+end;
+func retornacion(number n) -> number
+begin
+    writeln n;
+    return n + 1;
+    writeln n;
+    return n + 2;
+end;
+program
+    with
+        number i;
+    do
+        with
+            number j = 1;
+        do
+            while j <= 4 do
+                circle(j);
+                j = j + 1;
+            end;
+            writeln retornacion(j);
+        end;
+    end;
+end;
+
