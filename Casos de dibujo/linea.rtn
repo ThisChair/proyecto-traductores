@@ -1,0 +1,3 @@
+program
+    forward(100);
+end;

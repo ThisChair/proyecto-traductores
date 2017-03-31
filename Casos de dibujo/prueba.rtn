@@ -1,0 +1,11 @@
+# Dibuja un cuadrado
+program
+  forward(100);
+  rotater(90);
+  forward(100);
+  rotater(90);
+  forward(100);
+  rotater(90);
+  forward(100);
+  rotater(90);
+end;

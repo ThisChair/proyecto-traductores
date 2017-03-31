@@ -1,0 +1,9 @@
+# Dibuja un triangulo
+program
+  forward(300);
+  rotater(120);
+  forward(300);
+  rotater(120);
+  forward(300);
+  rotater(120);
+end;
