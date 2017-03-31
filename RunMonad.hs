@@ -11,6 +11,7 @@ import Data.Map as M
 import Data.Set as Set
 import Prelude as P
 import Data.Maybe
+import DrawingMonad
 
 type SymScope = Map String Variable             -- Tabla de simbolo de un alcance en especifico
 type SymTable = [SymScope]                      -- Tabla de simbolos, realmente es una lista de tablas de simbolos
@@ -48,7 +49,7 @@ data Scope = Scope  { sym     :: SymTable           -- tabla de simbolos
                     , foundR  :: Maybe Variable     -- Encontró un return
                     }
                 
-type RunMonad = RWST String (S.Seq(Scope)) Scope IO
+type RunMonad = RWST String (S.Seq(Instruction)) Scope IO
 
 -- Estado inicial del Monad
 initialState =  Scope

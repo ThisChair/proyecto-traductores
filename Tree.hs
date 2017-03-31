@@ -71,9 +71,18 @@ data Ins      = IBlock Block    |
                 IAssig Assig    |
                 IFCall FCall    |
                 IRet Ret        |
-                IEmpty 
+                IHome           |
+                IOpen           |
+                IClose          |
+                IForward        |
+                IBackward       |
+                IRotateL        |
+                IRotateR        |
+                ISetPosition    |
+                IArcD           |
+                IEmpty
                 deriving (Show)
-                
+               
 data Assig    = Assig Token Exp  deriving (Show)          -- Token: identificador
 data ReadId   = ReadId  Token    deriving (Show)          -- Token: identificador
 data Write    = Write  [Print]   deriving (Show)

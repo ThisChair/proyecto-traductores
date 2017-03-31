@@ -1,4 +1,4 @@
-module Main(main) where
+module DrawingMonad where
 import System.IO
 import Control.Monad.RWS as RWS
 import Data.Sequence as S
@@ -126,4 +126,4 @@ prueba =  [ InsF (Forward 100),
             InsF  (Forward 141)
           ] 
 
-main = image "prueba" prueba
+--main = image "prueba" prueba

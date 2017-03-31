@@ -12,6 +12,7 @@ import Data.Maybe
 import RunMonad
 import RunError
 import System.IO
+import DrawingMonad
 
 
 -- Inicia el recorrido del arbol
@@ -243,6 +244,29 @@ instruction (IAssig   ins)  = assig     ins
 instruction (IRet     ins)  = returnIns ins
 instruction (IFCall   ins)  = do  f <- funcCall  ins         -- ASEGURAR QUE SERA LLAMADA LA FUNCION
                                   return ()
+instruction IHome           = do tell $ S.singleton $ InsHome          
+instruction IOpen           = do tell $ S.singleton $ InsOpen
+instruction IClose          = do tell $ S.singleton $ InsClose
+instruction IForward        = do  scope <- get
+                                  let n = num $ fromJust (findSym (sym scope) "n")
+                                  tell $ S.singleton $ InsF (Forward n)
+instruction IBackward       = do  scope <- get
+                                  let n = num $ fromJust (findSym (sym scope) "n")
+                                  tell $ S.singleton $ InsB (Backward n)
+instruction IRotateL        = do  scope <- get
+                                  let n = num $ fromJust (findSym (sym scope) "n")
+                                  tell $ S.singleton $ InsRL (RotateL n)
+instruction IRotateR        = do  scope <- get
+                                  let n = num $ fromJust (findSym (sym scope) "n")
+                                  tell $ S.singleton $ InsRR (RotateR n)
+instruction ISetPosition    = do  scope <- get
+                                  let x = num $ fromJust (findSym (sym scope) "x")
+                                  let y = num $ fromJust (findSym (sym scope) "y")
+                                  tell $ S.singleton $ InsS (SetPosition x y)
+instruction IArcD           = do  scope <- get
+                                  let n = num $ fromJust (findSym (sym scope) "n")
+                                  let r = num $ fromJust (findSym (sym scope) "r")
+                                  tell $ S.singleton $ InsA (ArcD n r)
 instruction IEmpty          = do return ()
 
 -- Funciones recursivas para ciclos
