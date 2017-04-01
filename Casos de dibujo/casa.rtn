@@ -1,0 +1,19 @@
+# Dibuja una casa
+
+program
+  setposition(-250, -250);
+  forward(300);
+  rotater(90);
+  forward(300);
+  rotater(90);
+  forward(300);
+  rotatel(-180*7);
+  setposition(-500, -250);
+  closeeye();
+  rotater(90);
+  forward(100);
+  openeye();
+  forward(800);
+  closeeye();
+  forward(100);
+end;

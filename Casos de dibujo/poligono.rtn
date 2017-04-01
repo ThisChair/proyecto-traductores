@@ -1,0 +1,20 @@
+# Dibuja un poligono
+func poligono(number n)
+begin
+    rotater(90);
+    setposition(-300, -300);
+    with
+        number angle = 360/n;
+    do
+      repeat n times
+          forward(250);
+          rotatel(angle);
+      end;
+    end;
+end;
+
+program
+  poligono(4);
+  home();
+  poligono(7);
+end;
