@@ -187,10 +187,24 @@ readId (ReadId (TIdent p id)) = do
 readMaybe :: String -> Maybe Double
 readMaybe st = case reads st of [(x, "")] -> Just x
                                 _ -> Nothing
+-- Limpiar String
+-- Toma un string e imprime otro string simila al primero
+-- pero imprimiendo los caracteres '\n', '\' and '"', 
+-- en vez de "\\n" "\\" and "\""
+cleanString :: String -> String
+cleanString [] = []
+cleanString ('\\': 'n': xs) = ('\n': cleanString xs)
+cleanString ('\\':  x : xs) = (x : cleanString xs)
+cleanString (x:xs) = (x : cleanString xs)
+
+
+pStr :: String -> String
+pStr ('"':xs) = P.reverse str where ('"':str) = P.reverse xs
+      
 
 -- Imprimibles
 printP :: Print -> RunMonad ()
-printP (PToken (TString _ str)) = do liftIO . putStr $ str
+printP (PToken (TString _ str)) = do liftIO . putStr $ pStr $ cleanString str
 printP (PExp exp)               = do
   val <- runExpress exp                                -- Calcular valor de la expresion
   case (t val) of
