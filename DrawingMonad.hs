@@ -110,20 +110,3 @@ image file ls = do  let (s, lines) = execRWS (RWS.mapM_ instructionD ls) "" turt
                     writeFile fileOut "P1\n1001\n1001\n"
                     appendFile fileOut (unlines $ draw $ F.toList lines)
 
-
-
-------------- PRUEBA, ELIMINAR PARA LA ENTREGA ---------------------
--- Instructiones de prueba
-prueba :: [Instruction]
-prueba =  [ InsF (Forward 100),
-            InsRR (RotateR 90),
-            InsF (Forward 100), 
-            InsRR (RotateR 90),
-            InsF (Forward 100),
-            InsRR (RotateR 90),
-            InsF (Forward 100),
-            InsRR (RotateR 135),
-            InsF  (Forward 141)
-          ] 
-
---main = image "prueba" prueba

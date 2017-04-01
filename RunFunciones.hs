@@ -13,7 +13,7 @@ import RunMonad
 import RunError
 import System.IO
 import DrawingMonad
-
+import Data.Fixed
 
 
 -- Inicia el recorrido del arbol
@@ -408,7 +408,7 @@ rest (Mod l r) = do
     _ -> do return()
   let a = num exp1
   let b = num exp2
-  let val = a - fromIntegral (floor (a/b))*b
+  let val = mod' a b
   return (Variable Number val False True)
 
 
