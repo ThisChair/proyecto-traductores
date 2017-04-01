@@ -406,11 +406,9 @@ rest (Mod l r) = do
   case num exp2 of
     0 -> do errDivZero r
     _ -> do return()
-  let dob1 = num exp1
-  let dob2 = num exp2
-  let int1 = floor dob1
-  let int2 = floor dob2
-  let val = fromInteger (int1 `mod` int2) -- Esto no es la operación que piden.
+  let a = num exp1
+  let b = num exp2
+  let val = a - fromIntegral (floor (a/b))*b
   return (Variable Number val False True)
 
 
@@ -440,8 +438,8 @@ restI (ModI l r) = do
     _ -> do return()
   let dob1 = num exp1
   let dob2 = num exp2
-  let int1 = round dob1
-  let int2 = round dob2
+  let int1 = floor dob1
+  let int2 = floor dob2
   let val = fromInteger (int1 `mod` int2)
   return (Variable Number val False True)
 
